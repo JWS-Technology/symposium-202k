@@ -75,9 +75,9 @@ export default function Hero({ timeLeft }: HeroProps) {
               <h1 className="text-4xl md:text-8xl font-black uppercase italic tracking-tighter leading-none text-white mt-8">
                 SYMPO<span className="text-red-600">SIUM</span>
               </h1>
-              <h2 className="text-xl md:text-5xl font-light italic tracking-[0.05em] md:tracking-[0.1em] text-zinc-500 mt-2 uppercase">
+              {/* <h2 className="text-xl md:text-5xl font-light italic tracking-[0.05em] md:tracking-[0.1em] text-zinc-500 mt-2 uppercase">
                 National Level Technical Meet
-              </h2>
+              </h2> */}
 
               <div className="h-1 w-full bg-gradient-to-r from-transparent via-red-600 to-transparent my-6 md:my-8" />
 
@@ -115,21 +115,21 @@ export default function Hero({ timeLeft }: HeroProps) {
 
               {/* CTA Buttons */}
               <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-center items-center">
-                <Link href="/login" className="w-full md:w-auto">
+                <Link href="/events" className="w-full md:w-auto">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     className="w-full md:w-64 bg-red-600 text-black font-black py-3 md:py-4 uppercase italic skew-x-[-20deg] border-r-4 md:border-r-8 border-white hover:bg-white transition-all text-sm md:text-base"
                   >
-                    <span className="inline-block skew-x-[20deg]">Join Symposium</span>
+                    <span className="inline-block skew-x-[20deg]">Events</span>
                   </motion.button>
                 </Link>
 
-                <Link href="/events" className="w-full md:w-auto">
+                <Link href="/register" className="w-full md:w-auto">
                   <motion.button
                     whileHover={{ scale: 1.05 }}
                     className="w-full md:w-64 border-2 border-red-600 text-red-600 font-black py-3 md:py-4 uppercase italic skew-x-[-20deg] hover:bg-red-600 hover:text-black transition-all text-sm md:text-base"
                   >
-                    <span className="inline-block skew-x-[20deg]">Explore Events</span>
+                    <span className="inline-block skew-x-[20deg]">Register</span>
                   </motion.button>
                 </Link>
               </div>
