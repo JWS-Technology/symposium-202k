@@ -10,6 +10,8 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { FaTrophy, FaAward, FaMedal } from "react-icons/fa";
 // Define types for background element properties
+
+
 interface BackgroundElement {
   id: number;
   width: number;
