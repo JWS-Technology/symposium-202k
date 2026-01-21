@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import axios, { AxiosError } from 'axios';
+import Navbar from '@/components/Navbar';
 
 const Page = () => {
   // 1. Initialize State
@@ -153,7 +154,10 @@ const Page = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    
+    <div style={{ ...containerStyle, paddingTop: '80px' }}>
+      <Navbar />
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,700;0,900;1,900&display=swap');
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }

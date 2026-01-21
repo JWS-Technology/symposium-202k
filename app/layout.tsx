@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
+// import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Symposium 2k25",
@@ -15,7 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased"> 
+        {/* <Navbar/> */}
+        {children}
+        <Footer/>
+        </body>
+      
     </html>
   );
 }
