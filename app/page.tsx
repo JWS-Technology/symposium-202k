@@ -1,10 +1,37 @@
 "use client";
 import { useState, useEffect } from "react";
-import Navbar from "@/components/Navbar";
-import Hero from "@/components/Hero";
-import PrizeCard from "@/components/PrizeCard";
-import { FaTrophy, FaMedal, FaAward, FaSpider } from "react-icons/fa6";
-import { motion, AnimatePresence } from "framer-motion";
+import { LuCalendar, LuUsers } from "react-icons/lu";
+import { FaRegClock } from "react-icons/fa6";
+import { MdOutlineLocationOn } from "react-icons/md";
+import { IoMailOutline } from "react-icons/io5";
+import { BsTelephone } from "react-icons/bs";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { FaTrophy, FaAward, FaMedal } from "react-icons/fa";
+// Define types for background element properties
+interface BackgroundElement {
+  id: number;
+  width: number;
+  height: number;
+  top: string;
+  left: string;
+  scale: number[];
+  opacity: number[];
+  duration: number;
+  delay: number;
+}
+
+// Confetti particle interface
+interface ConfettiParticle {
+  id: number;
+  x: number;
+  y: number;
+  angle: number;
+  size: number;
+  duration: number;
+  delay: number;
+  colors: string[];
+}
 
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
