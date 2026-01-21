@@ -47,7 +47,7 @@ export default function Navbar() {
           </motion.div>
           <div className="flex flex-col">
             <span className="text-xl font-black italic tracking-tighter uppercase leading-none">
-              SYMPOSIUM<span className="text-red-600">.IT</span>
+              SYMPO<span className="text-red-600">SIUM</span>
             </span>
             <span className="text-[8px] font-bold text-zinc-500 tracking-[0.3em] uppercase">SJC Trichy</span>
           </div>
