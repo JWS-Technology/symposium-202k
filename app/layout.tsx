@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
-// import Navbar from "@/components/Navbar";
+import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
@@ -17,12 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body className="antialiased"> 
-        {/* <Navbar/> */}
+      <body className="antialiased">
+        <Navbar />
         {children}
-        <Footer/>
-        </body>
-      
+        <Footer />
+      </body>
+
     </html>
   );
 }
