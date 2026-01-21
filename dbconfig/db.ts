@@ -1,23 +1,54 @@
 import mongoose from "mongoose";
 
-interface ConnectionStates {
-  isConnected?: number;
+const MONGODB_URI = process.env.MONGO_URI;
+
+if (!MONGODB_URI) {
+  throw new Error(
+    "Please define the MONGO_URI environment variable inside .env.local"
+  );
 }
 
-const connectionStates: ConnectionStates = {};
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
 
-export async function connect(): Promise<void> {
-  if (connectionStates.isConnected) {
-    return;
+declare global {
+  var mongoose: MongooseCache;
+}
+
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+export async function connect() {
+  // 1. Return cached connection if available
+  if (cached.conn) {
+    return cached.conn;
   }
 
+  // 2. If no connection promise exists, create one
+  if (!cached.promise) {
+    const opts = {
+      bufferCommands: false, // Disable Mongoose buffering for serverless/edge
+    };
+
+    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+      console.log("✅ New MongoDB Connection established");
+      return mongoose;
+    });
+  }
+
+  // 3. Await the promise and cache the resolved connection
   try {
-    const db = await mongoose.connect(process.env.MONGO_URI as string);
-
-    connectionStates.isConnected = db.connection.readyState;
-    // console.log("✅ Database connected:", db.connection.host);
-  } catch (error) {
-    console.error("❌ Error in database connection\n", error);
-    process.exit(1);
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null; // Reset promise if connection failed
+    console.error("❌ MongoDB Connection Error:", e);
+    throw e;
   }
+
+  return cached.conn;
 }
