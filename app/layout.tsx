@@ -4,8 +4,8 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Hackathon 2k25",
-  description: "Hackathon 2025 - Department of Information Technology",
+  title: "Symposium 2k25",
+  description: "Symposium 2025 - Department of Information Technology",
 };
 
 export default function RootLayout({
