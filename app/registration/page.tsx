@@ -1,8 +1,8 @@
 "use client"
 import React, { useState } from 'react'
 import { useRouter } from "next/navigation";
-import { LuUsers, LuUser, LuArrowRight, LuArrowLeft, LuLoader } from "react-icons/lu";
-import { LuEye, LuEyeOff } from "react-icons/lu";
+import {LuUser} from "react-icons/lu";
+
 
 interface TeamMember {
     name: string;

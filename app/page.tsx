@@ -1,10 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import PrizeCard from "@/components/PrizeCard";
 import { FaTrophy, FaMedal, FaAward, FaSpider } from "react-icons/fa6";
-import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
