@@ -5,7 +5,7 @@ export interface EventDocument extends Document {
   eventName: string;
   minPlayers: number;
   maxPlayers: number;
-  eventType: "ON_STAGE" | "OFF_STAGE" | "CULTURALS"; // Strict Enum Typing
+  eventType: "TECHNICAL" | "NON-TECHNICAL" | "CULTURALS";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,13 +31,13 @@ const EventSchema = new Schema<EventDocument>(
     eventType: {
       type: String,
       required: true,
-      enum: ["ON_STAGE", "OFF_STAGE", "CULTURALS"],
+      enum: ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"],
       uppercase: true,
     },
   },
   {
     timestamps: true, // Automatically manages createdAt and updatedAt
-  }
+  },
 );
 
 // 3. Export the Model (checking if it already exists first)
