@@ -8,9 +8,9 @@ export default function SpiderCursor() {
     const [isHovering, setIsHovering] = useState(false);
     const [isClicking, setIsClicking] = useState(false);
     const [isVisible, setIsVisible] = useState(false); // Only show custom cursor when mouse moves
-
+    const [isMobile, setIsMobile] = useState(false);
     // --- CONFIG ---
-    const CURSOR_SIZE = 20;
+    const CURSOR_SIZE = 22;
     const OFFSET = CURSOR_SIZE / 2;
 
     // 1. Track Mouse Position
@@ -18,7 +18,7 @@ export default function SpiderCursor() {
     const cursorY = useMotionValue(-100);
 
     // 2. Physics - Smooth but responsive
-    const springConfig = { damping: 25, stiffness: 500, mass: 0.4 };
+    const springConfig = { damping: 25, stiffness: 800, mass: 0.1 };
     const cursorXSpring = useSpring(cursorX, springConfig);
     const cursorYSpring = useSpring(cursorY, springConfig);
 
@@ -31,7 +31,18 @@ export default function SpiderCursor() {
         },
     };
 
+
     useEffect(() => {
+
+    }, [cursorX, cursorY, OFFSET, isVisible]);
+    useEffect(() => {
+        // 1. Detect if the device is mobile/touch
+        const checkMobile = () => {
+            setIsMobile(window.matchMedia('(pointer: coarse)').matches);
+        };
+
+        checkMobile(); // Initial check
+
         const moveCursor = (e: MouseEvent) => {
             // Show cursor on first move
             if (!isVisible) setIsVisible(true);
@@ -69,6 +80,14 @@ export default function SpiderCursor() {
         window.addEventListener('mouseover', handleMouseOver);
         window.addEventListener('mouseout', handleMouseOut);
 
+
+
+        // 2. Wrap your event listeners in a condition
+        if (!isMobile) {
+            window.addEventListener('mousemove', moveCursor);
+            // ... other listeners
+        }
+
         return () => {
             window.removeEventListener('mousemove', moveCursor);
             window.removeEventListener('mousedown', handleMouseDown);
@@ -76,7 +95,10 @@ export default function SpiderCursor() {
             window.removeEventListener('mouseover', handleMouseOver);
             window.removeEventListener('mouseout', handleMouseOut);
         };
-    }, [cursorX, cursorY, OFFSET, isVisible]);
+    }, [isMobile]); // Add isMobile to dependencies
+
+    // 3. Return null if it's a mobile device
+    if (isMobile) return null;
 
     return (
         <>
@@ -85,22 +107,28 @@ export default function SpiderCursor() {
         2. !important overrides individual element styles.
       */}
             <style jsx global>{`
-        * {
-          cursor: none !important;
-        }
-        html, body {
-          cursor: none !important;
-          /* Prevent iOS text selection showing cursor */
-          -webkit-tap-highlight-color: transparent; 
-        }
-      `}</style>
+  /* Only hide the cursor on devices that support a 'fine' pointer (mouse) */
+  @media (pointer: fine) {
+    * {
+      cursor: none !important;
+    }
+    html, body {
+      cursor: none !important;
+    }
+  }
+
+  /* Ensure touch interactions don't show the gray highlight box on mobile */
+  html, body {
+    -webkit-tap-highlight-color: transparent; 
+  }
+`}</style>
 
             {/* MAIN CURSOR CONTAINER */}
             <motion.div
                 className="fixed top-0 left-0 pointer-events-none z-[99999]" // Increased Z-Index
                 style={{
-                    x: cursorXSpring,
-                    y: cursorYSpring,
+                    x: cursorX,
+                    y: cursorY,
                     width: CURSOR_SIZE,
                     height: CURSOR_SIZE,
                     opacity: isVisible ? 1 : 0, // Hide until mouse moves
