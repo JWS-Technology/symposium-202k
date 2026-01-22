@@ -4,6 +4,7 @@ import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import SpiderCursor from "@/components/SpiderCursor";
 
 export const metadata: Metadata = {
   title: "Symposium 2k25",
@@ -18,6 +19,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="antialiased">
+        <SpiderCursor />
         <Navbar />
         {children}
         <Footer />

@@ -8,7 +8,7 @@ import { FaTrophy, FaMedal, FaAward } from "react-icons/fa6";
 import Prize from "@/components/Prize";
 import EventCategories from "@/components/EventCategories";
 // 1. Import the Spider Cursor Component
-import SpiderCursor from "@/components/SpiderCursor";
+
 
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -51,8 +51,7 @@ export default function Home() {
   return (
     <main className="bg-black text-white min-h-screen selection:bg-red-600 selection:text-white">
       
-      {/* 2. Add the Spider Cursor Here */}
-      <SpiderCursor />
+     
 
       <Navbar />
 
