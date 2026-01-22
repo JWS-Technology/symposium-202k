@@ -84,7 +84,7 @@ export default function Navbar() {
               SYMPO<span className="text-[#ff003c]">SIUM</span>
             </span>
             <span className="text-[8px] font-tech text-[#00f0ff] tracking-[0.3em] uppercase absolute -bottom-2 left-0 bg-black px-1">
-              Earth-1610
+              Earth-616
             </span>
           </div>
         </Link>
