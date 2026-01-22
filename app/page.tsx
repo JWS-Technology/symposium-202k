@@ -5,6 +5,7 @@ import Hero from "@/components/Hero";
 import PrizeCard from "@/components/PrizeCard";
 import { FaTrophy, FaMedal, FaAward } from "react-icons/fa6";
 import Prize from "@/components/Prize";
+import EventCategories from "@/components/EventCategories";
 
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -51,6 +52,8 @@ export default function Home() {
       <div id="hero">
         <Hero timeLeft={timeLeft} />
       </div>
+
+      <EventCategories />
 
       <Prize />
     </main>
