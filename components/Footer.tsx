@@ -120,7 +120,7 @@ export default function Footer() {
         transition={{ duration: 4, repeat: Infinity }}
         className="absolute top-32 right-6 md:right-32 bg-[#fff000] text-black font-black text-xl px-4 py-2 rotate-12 shadow-[5px_5px_0px_#000] border-2 border-black z-0 opacity-80"
       >
-        <span className="font-comic">EARTH-1610</span>
+        <span className="font-comic">EARTH-616</span>
         <span className="block text-[10px] font-jp font-black text-center mt-[-4px]">アース</span>
       </motion.div>
 
