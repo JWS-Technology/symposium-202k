@@ -25,7 +25,7 @@ export default function Navbar() {
 
   return (
     <nav className="fixed top-0 w-full z-[100] px-2 md:px-10 pt-4 transition-all duration-300">
-      
+
       {/* --- GLOBAL STYLES (Keep consistent with Footer) --- */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Mono:wght@700&family=Noto+Sans+JP:wght@900&display=swap');
@@ -66,7 +66,7 @@ export default function Navbar() {
       >
         {/* Top Hazard Bar (Only visible when scrolled) */}
         {isScrolled && (
-           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff003c] via-[#fff000] to-[#00f0ff]" />
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff003c] via-[#fff000] to-[#00f0ff]" />
         )}
 
         {/* --- LOGO SECTION --- */}
@@ -78,20 +78,20 @@ export default function Navbar() {
             <div className="absolute inset-0 bg-dots opacity-50" />
             <FaSpider className="text-white text-2xl relative z-10" />
           </motion.div>
-          
+
           <div className="flex flex-col relative">
             <span className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none text-white font-comic glitch-nav-text" data-text="SYMPOSIUM">
-              SYMPO<span className="text-[#ff003c]">SIUM</span>
+              ARA<span className="text-[#ff003c]">ZON</span>
             </span>
             <span className="text-[8px] font-tech text-[#00f0ff] tracking-[0.3em] uppercase absolute -bottom-2 left-0 bg-black px-1">
-              Earth-616
+              Symposium
             </span>
           </div>
         </Link>
 
         {/* --- DESKTOP NAVIGATION --- */}
         <div className="hidden md:flex items-center gap-8">
-          
+
           {/* Events Dropdown (Holo-Panel Style) */}
           <div
             className="relative"
@@ -100,7 +100,7 @@ export default function Navbar() {
           >
             <button className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group py-2 font-comic">
               <FaBolt className="text-[#ff003c] text-xs group-hover:animate-pulse" />
-              Events 
+              Events
               <FaChevronDown size={10} className={`transition-transform duration-200 ${isEventsOpen ? 'rotate-180 text-[#00f0ff]' : ''}`} />
             </button>
 
@@ -115,7 +115,7 @@ export default function Navbar() {
                   <div className="bg-[#111] p-2 relative overflow-hidden">
                     {/* Scanlines on dropdown */}
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 pointer-events-none bg-[length:100%_4px,3px_100%]" />
-                    
+
                     {eventLinks.map((link) => (
                       <Link
                         key={link.name}
@@ -123,8 +123,8 @@ export default function Navbar() {
                         className="block px-4 py-3 mb-1 text-sm font-black uppercase tracking-widest text-white hover:bg-[#00f0ff] hover:text-black hover:skew-x-6 transition-all relative group z-10 font-comic border border-transparent hover:border-black"
                       >
                         <div className="flex justify-between items-center">
-                           <span>{link.name}</span>
-                           <span className="text-[8px] font-jp opacity-0 group-hover:opacity-100 text-black font-black">{link.jp}</span>
+                          <span>{link.name}</span>
+                          <span className="text-[8px] font-jp opacity-0 group-hover:opacity-100 text-black font-black">{link.jp}</span>
                         </div>
                       </Link>
                     ))}
@@ -138,7 +138,7 @@ export default function Navbar() {
             <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
             Contact
           </Link>
-          
+
           <Link href="/register" className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group font-comic">
             <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
             Register
@@ -179,57 +179,57 @@ export default function Navbar() {
           >
             {/* Inner Black Container for Contrast */}
             <div className="bg-black h-full w-full relative overflow-hidden flex flex-col p-8">
-               
-               {/* Background Texture */}
-               <div className="absolute inset-0 bg-dots opacity-20 pointer-events-none" />
-               <div className="absolute -right-10 -bottom-10 opacity-20 pointer-events-none text-[#ff003c]">
-                  <FaSpider size={300} />
-               </div>
 
-               <div className="flex justify-between items-center mb-12 border-b-2 border-[#ff003c] pb-4">
-                 <span className="text-3xl font-black font-comic text-white italic">MENU <span className="text-[#00f0ff] text-sm not-italic font-jp">メニュー</span></span>
-                 <button onClick={() => setIsOpen(false)} className="text-white hover:text-[#ff003c] transition-colors"><IoClose size={40} /></button>
-               </div>
+              {/* Background Texture */}
+              <div className="absolute inset-0 bg-dots opacity-20 pointer-events-none" />
+              <div className="absolute -right-10 -bottom-10 opacity-20 pointer-events-none text-[#ff003c]">
+                <FaSpider size={300} />
+              </div>
 
-               <div className="flex flex-col gap-6 relative z-10">
-                 {/* Mobile Events */}
-                 <div className="flex flex-col gap-2">
-                    <p className="text-[#00f0ff] font-tech text-xs tracking-widest uppercase mb-2">// 01. EVENTS</p>
-                    {eventLinks.map((link) => (
-                      <Link
-                        key={link.name}
-                        href={link.href}
-                        onClick={() => setIsOpen(false)}
-                        className="text-4xl font-black uppercase italic text-transparent stroke-white stroke-1 hover:text-[#ff003c] hover:stroke-0 transition-all font-comic"
-                        style={{ WebkitTextStroke: "1px white" }}
-                      >
-                        {link.name}
-                      </Link>
-                    ))}
-                 </div>
+              <div className="flex justify-between items-center mb-12 border-b-2 border-[#ff003c] pb-4">
+                <span className="text-3xl font-black font-comic text-white italic">MENU <span className="text-[#00f0ff] text-sm not-italic font-jp">メニュー</span></span>
+                <button onClick={() => setIsOpen(false)} className="text-white hover:text-[#ff003c] transition-colors"><IoClose size={40} /></button>
+              </div>
 
-                 {/* Other Links */}
-                 <div className="h-[1px] w-full bg-zinc-800 my-2" />
-                 
-                 <Link href="/contact" onClick={() => setIsOpen(false)} className="text-3xl font-black uppercase italic text-white hover:text-[#fff000] transition-colors font-comic flex items-center justify-between">
-                    Contact <span className="text-xs font-jp text-zinc-500">連絡</span>
-                 </Link>
-                 <Link href="/register" onClick={() => setIsOpen(false)} className="text-3xl font-black uppercase italic text-white hover:text-[#fff000] transition-colors font-comic flex items-center justify-between">
-                    Register <span className="text-xs font-jp text-zinc-500">登録</span>
-                 </Link>
-               </div>
+              <div className="flex flex-col gap-6 relative z-10">
+                {/* Mobile Events */}
+                <div className="flex flex-col gap-2">
+                  <p className="text-[#00f0ff] font-tech text-xs tracking-widest uppercase mb-2">// 01. EVENTS</p>
+                  {eventLinks.map((link) => (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      onClick={() => setIsOpen(false)}
+                      className="text-4xl font-black uppercase italic text-transparent stroke-white stroke-1 hover:text-[#ff003c] hover:stroke-0 transition-all font-comic"
+                      style={{ WebkitTextStroke: "1px white" }}
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                </div>
 
-               <div className="mt-auto border-t-2 border-[#00f0ff] pt-6 flex flex-col gap-3">
-                 <Link href="/login" onClick={() => setIsOpen(false)}>
-                   <button className="w-full bg-[#ff003c] text-black py-4 font-black uppercase italic tracking-widest hover:bg-white transition-colors border-2 border-transparent hover:border-black font-comic text-xl">
-                     Login
-                   </button>
-                 </Link>
-                 <div className="flex justify-between text-zinc-500 font-tech text-[10px]">
-                    <span>SECURE_CONNECTION</span>
-                    <span>v.2.0.4</span>
-                 </div>
-               </div>
+                {/* Other Links */}
+                <div className="h-[1px] w-full bg-zinc-800 my-2" />
+
+                <Link href="/contact" onClick={() => setIsOpen(false)} className="text-3xl font-black uppercase italic text-white hover:text-[#fff000] transition-colors font-comic flex items-center justify-between">
+                  Contact <span className="text-xs font-jp text-zinc-500">連絡</span>
+                </Link>
+                <Link href="/register" onClick={() => setIsOpen(false)} className="text-3xl font-black uppercase italic text-white hover:text-[#fff000] transition-colors font-comic flex items-center justify-between">
+                  Register <span className="text-xs font-jp text-zinc-500">登録</span>
+                </Link>
+              </div>
+
+              <div className="mt-auto border-t-2 border-[#00f0ff] pt-6 flex flex-col gap-3">
+                <Link href="/login" onClick={() => setIsOpen(false)}>
+                  <button className="w-full bg-[#ff003c] text-black py-4 font-black uppercase italic tracking-widest hover:bg-white transition-colors border-2 border-transparent hover:border-black font-comic text-xl">
+                    Login
+                  </button>
+                </Link>
+                <div className="flex justify-between text-zinc-500 font-tech text-[10px]">
+                  <span>SECURE_CONNECTION</span>
+                  <span>v.2.0.4</span>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
