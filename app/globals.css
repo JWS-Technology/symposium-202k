@@ -156,12 +156,17 @@
 }
 
 .animate-glitch-skew {
-  animation: glitch-skew 0.2s cubic-bezier(.25, .46, .45, .94) both infinite;
+  animation: glitch-skew 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
 }
 
 .web-line {
   position: absolute;
-  background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
   width: 1px;
   height: 200vh;
   top: -50vh;
@@ -193,13 +198,5 @@
 
 /* Custom Scrollbar for the dark theme */
 ::-webkit-scrollbar {
-  width: 5px;
-}
-
-::-webkit-scrollbar-track {
-  background: #050505;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #dc2626;
+  display: none;
 }
