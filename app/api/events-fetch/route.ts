@@ -14,10 +14,10 @@ export async function GET(req: NextRequest) {
     const filter: Record<string, any> = {};
 
     if (eventType) {
-      if (!["ON_STAGE", "OFF_STAGE", "CULTURALS"].includes(eventType)) {
+      if (!["TECHNICAL", "NON-TECHNICAL", "CULTURALS"].includes(eventType)) {
         return NextResponse.json(
           { message: "Invalid event type" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -33,21 +33,18 @@ export async function GET(req: NextRequest) {
         count: events.length,
         data: events,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error: unknown) {
     console.error("❌ Fetch Events Error:", error);
 
     if (error instanceof Error) {
-      return NextResponse.json(
-        { message: error.message },
-        { status: 500 }
-      );
+      return NextResponse.json({ message: error.message }, { status: 500 });
     }
 
     return NextResponse.json(
       { message: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

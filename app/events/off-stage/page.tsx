@@ -10,7 +10,7 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("/api/events-fetch?eventType=OFF_STAGE");
+        const res = await fetch("/api/events-fetch?eventType=NON-TECHNICAL");
         const data = await res.json();
         setEvents(data.data);
       } finally {
@@ -26,10 +26,10 @@ export default function EventsPage() {
         {/* Page Header */}
         <div className="mb-16 relative">
           <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter opacity-20 absolute -top-10 -left-2 select-none">
-            Eventts
+            Events
           </h1>
           <h1 className="relative text-5xl md:text-7xl font-black italic uppercase border-l-8 border-red-600 pl-6">
-           Off <span className="text-red-600"> Stage</span>
+            NON <span className="text-red-600"> TECHNICAL</span>
           </h1>
         </div>
 
@@ -84,9 +84,9 @@ function SpiderCard({ event }: { event: any }) {
       <div className="absolute inset-2 overflow-hidden rounded-xl bg-black">
         <motion.img
           src="/images/spider_man_bg.png"
-          style={{ 
+          style={{
             x: useTransform(mouseXSpring, [-0.5, 0.5], [15, -15]),
-            y: useTransform(mouseYSpring, [-0.5, 0.5], [15, -15]) 
+            y: useTransform(mouseYSpring, [-0.5, 0.5], [15, -15])
           }}
           className="w-full h-full object-cover opacity-40 grayscale group-hover:grayscale-0 group-hover:opacity-60 transition-all duration-700"
         />
@@ -103,22 +103,22 @@ function SpiderCard({ event }: { event: any }) {
       </div>
 
       {/* 3. CARD CONTENT */}
-      <div 
+      <div
         style={{ transform: "translateZ(50px)" }} // Makes text "pop" out
         className="absolute inset-0 p-8 flex flex-col justify-end"
       >
         <div className="bg-black/60 backdrop-blur-md p-6 border-l-4 border-red-600 transform group-hover:translate-x-2 transition-transform">
-          <p className="text-red-500 font-mono text-[10px] tracking-widest mb-1">DATA_STREAM_{event.eventType}</p>
+          <p className="text-red-500 font-mono text-[10px] tracking-widest mb-1">{event.eventType}</p>
           <h2 className="text-3xl font-black italic uppercase leading-none mb-4 group-hover:text-red-500 transition-colors">
             {event.eventName}
           </h2>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-              <span className="text-[10px] font-mono text-zinc-400 uppercase">{event.minPlayers}-{event.maxPlayers} Persions</span>
+              <span className="text-[10px] font-mono text-zinc-400 uppercase">{event.minPlayers}{event.maxPlayers === 1 ? "" : " - " + event.maxPlayers} Participants</span>
             </div>
-            <motion.div 
+            <motion.div
               whileHover={{ x: 5 }}
               className="text-white bg-red-600 p-2"
             >

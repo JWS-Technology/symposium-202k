@@ -10,7 +10,7 @@ const Page = () => {
     eventName: '',
     minPlayers: '',
     maxPlayers: '',
-    eventType: 'ON_STAGE'
+    eventType: 'TECHNICAL'
   });
 
   const [status, setStatus] = useState({ loading: false, message: '' });
@@ -44,21 +44,21 @@ const Page = () => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       setStatus({ loading: false, message: 'EVENT CREATED SUCCESSFULLY!' });
       console.log('Server Response:', response.data);
-      
+
       // Reset form
       setFormData({
         eventName: '',
         minPlayers: '',
         maxPlayers: '',
-        eventType: 'ON_STAGE'
+        eventType: 'TECHNICAL'
       });
 
     } catch (error: unknown) { // FIX: Use 'unknown' instead of 'any'
       console.error('Error:', error);
-      
+
       let errorMessage = 'ERROR CREATING EVENT';
 
       // Check if the error is an AxiosError to safely access response data
@@ -70,8 +70,8 @@ const Page = () => {
         errorMessage = error.message;
       }
 
-      setStatus({ 
-        loading: false, 
+      setStatus({
+        loading: false,
         message: errorMessage
       });
     }
@@ -154,7 +154,7 @@ const Page = () => {
   };
 
   return (
-    
+
     <div style={{ ...containerStyle, paddingTop: '80px' }}>
       <Navbar />
 
@@ -182,19 +182,19 @@ const Page = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div>
               <label style={labelStyle}>Min Players</label>
-              <input type="number" name="minPlayers" value={formData.minPlayers} onChange={handleChange} required min="1" placeholder="0" style={{...inputStyle, textAlign: 'center'}} />
+              <input type="number" name="minPlayers" value={formData.minPlayers} onChange={handleChange} required min="1" placeholder="0" style={{ ...inputStyle, textAlign: 'center' }} />
             </div>
             <div>
               <label style={labelStyle}>Max Players</label>
-              <input type="number" name="maxPlayers" value={formData.maxPlayers} onChange={handleChange} required min="1" placeholder="0" style={{...inputStyle, textAlign: 'center'}} />
+              <input type="number" name="maxPlayers" value={formData.maxPlayers} onChange={handleChange} required min="1" placeholder="0" style={{ ...inputStyle, textAlign: 'center' }} />
             </div>
           </div>
 
           <div>
             <label style={labelStyle}>Event Category</label>
             <select name="eventType" value={formData.eventType} onChange={handleChange} style={selectStyle}>
-              <option value="ON_STAGE">ON_STAGE</option>
-              <option value="OFF_STAGE">OFF_STAGE</option>
+              <option value="TECHNICAL">TECHNICAL</option>
+              <option value="NON-TECHNICAL">NON-TECHNICAL</option>
               <option value="CULTURALS">CULTURALS</option>
             </select>
           </div>

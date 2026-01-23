@@ -50,8 +50,8 @@ export default function Home() {
 
   return (
     <main className="bg-black text-white min-h-screen selection:bg-red-600 selection:text-white">
-      
-     
+
+
 
       <Navbar />
 
@@ -66,7 +66,7 @@ export default function Home() {
 
       <EventCategories />
 
-      <Prize />
+      {/* <Prize /> */}
     </main>
   );
 }
