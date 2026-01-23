@@ -28,11 +28,11 @@ export default function EventsPage() {
           <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter opacity-20 absolute -top-10 -left-2 select-none">
             Events
           </h1>
-          
-           <h1 className="relative text-5xl md:text-7xl font-black italic uppercase border-l-8 border-red-600 pl-6">
+
+          <h1 className="relative text-5xl md:text-7xl font-black italic uppercase border-l-8 border-red-600 pl-6">
             NON <span className="text-red-600"> TECHNICAL</span>
           </h1>
-         
+
         </div>
 
         {/* Grid Container */}

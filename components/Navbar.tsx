@@ -18,8 +18,8 @@ export default function Navbar() {
   }, []);
 
   const eventLinks = [
-    { name: "Non Technical", href: "/events/on-stage", jp: "ステージ" },
-    { name: "Technical", href: "/events/off-stage", jp: "オフステージ" },
+    { name: "Technical", href: "/events/technical", jp: "オフステージ" },
+    { name: "Non Technical", href: "/events/non-technical", jp: "ステージ" },
     { name: "Culturals", href: "/events/culturals", jp: "文化" },
   ];
 
