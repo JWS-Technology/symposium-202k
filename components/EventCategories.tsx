@@ -6,7 +6,7 @@ import Link from "next/link";
 import { FaMicrochip, FaMasksTheater, FaMusic, FaArrowRight, FaSpider } from "react-icons/fa6";
 
 interface EventData {
-  eventType: "ON_STAGE" | "OFF_STAGE" | "CULTURALS";
+  eventType: "NON-TECHNICAL" | "TECHNICAL" | "CULTURALS";
 }
 
 export default function EventCategories() {
@@ -40,20 +40,20 @@ export default function EventCategories() {
 
   const categories = [
     {
-      id: "ON_STAGE",
-      title: "On Stage",
-      description: "Spotlight missions requiring live technical presentation.",
-      path: "/events/on-stage",
+      id: "TECHNICAL",
+      title: "Technical",
+      description: "Backend challenges and technical problem solving.",
+      path: "/events/off-stage",
       icon: <FaMasksTheater />,
       img: "/images/spider_man_bg.png",
       accent: "text-red-500",
       glow: "shadow-[0_0_20px_rgba(220,38,38,0.3)]",
     },
     {
-      id: "OFF_STAGE",
-      title: "Off Stage",
-      description: "Backend challenges and technical problem solving.",
-      path: "/events/off-stage",
+      id: "NON-TECHNICAL",
+      title: "Non Technical",
+      description: "Spotlight missions requiring live technical presentation.",
+      path: "/events/on-stage",
       icon: <FaMicrochip />,
       img: "/images/spider_man_bg.png",
       accent: "text-cyan-400",

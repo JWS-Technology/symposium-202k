@@ -10,7 +10,7 @@ export default function EventsPage() {
   useEffect(() => {
     const fetchEvents = async () => {
       try {
-        const res = await fetch("/api/events-fetch?eventType=TECHNICAL");
+        const res = await fetch("/api/events-fetch?eventType=NON-TECHNICAL");
         const data = await res.json();
         setEvents(data.data);
       } finally {
@@ -28,9 +28,11 @@ export default function EventsPage() {
           <h1 className="text-6xl md:text-8xl font-black italic uppercase tracking-tighter opacity-20 absolute -top-10 -left-2 select-none">
             Events
           </h1>
-          <h1 className="relative text-5xl md:text-7xl font-black italic uppercase border-l-8 border-red-600 pl-6">
-            TECH<span className="text-red-600">NICAL</span>
+          
+           <h1 className="relative text-5xl md:text-7xl font-black italic uppercase border-l-8 border-red-600 pl-6">
+            NON <span className="text-red-600"> TECHNICAL</span>
           </h1>
+         
         </div>
 
         {/* Grid Container */}
@@ -136,3 +138,7 @@ function SpiderCard({ event }: { event: any }) {
     </motion.div>
   );
 }
+
+
+
+
