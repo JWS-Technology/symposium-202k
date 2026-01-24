@@ -7,6 +7,7 @@ interface Event {
     _id: string;
     title: string;
     description: string;
+    eventName: string;
     eventType: "TECHNICAL" | "NON-TECHNICAL" | "CULTURALS";
     minPlayers?: number;
     maxPlayers?: number;
@@ -128,7 +129,7 @@ function SpiderCard({ event }: { event: Event }) {
                         {event.eventType}
                     </p>
                     <h2 className="text-2xl font-black italic uppercase leading-none mb-3 group-hover:text-red-500 transition-colors">
-                        {event.title}
+                        {event.eventName}
                     </h2>
 
                     <p className="text-zinc-400 text-xs mb-4 line-clamp-2 font-medium">
@@ -138,11 +139,12 @@ function SpiderCard({ event }: { event: Event }) {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                            <span className="text-[10px] font-mono text-zinc-400 uppercase">
-                                Active Registration
-                            </span>
+                            <span className="text-[10px] font-mono text-zinc-400 uppercase">{event.minPlayers}{event.maxPlayers === 1 ? "" : " - " + event.maxPlayers} Participants</span>
                         </div>
-                        <motion.div whileHover={{ x: 5 }} className="text-white bg-red-600 p-2">
+                        <motion.div
+                            whileHover={{ x: 5 }}
+                            className="text-white bg-red-600 p-2"
+                        >
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                                 <path d="M5 12h14M12 5l7 7-7 7" />
                             </svg>
