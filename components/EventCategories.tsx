@@ -187,6 +187,38 @@ export default function EventCategories() {
             </Link>
           ))}
         </div>
+
+        {/* ... closing </div> of the grid ... */}
+
+        {/* VIEW ALL EVENTS ACTION */}
+        <div className="mt-24 flex flex-col items-center justify-center relative">
+          {/* Decorative Line Decor */}
+          <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-zinc-800 to-transparent -z-10" />
+
+          <Link href="/events" className="group relative">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="relative z-10"
+            >
+              {/* The Button Body */}
+              <div className="bg-red-600 text-white px-10 py-4 font-black italic uppercase tracking-[0.2em] text-sm skew-x-[-20deg] flex items-center gap-4 group-hover:bg-white group-hover:text-black transition-all duration-300 shadow-[0_0_30px_rgba(220,38,38,0.4)]">
+                <span className="skew-x-[20deg]">Access_All_Files</span>
+                <FaArrowRight className="skew-x-[20deg] group-hover:translate-x-2 transition-transform" />
+              </div>
+
+              {/* Glitch Shadow Effect */}
+              <div className="absolute inset-0 border-2 border-cyan-400 -translate-x-2 translate-y-2 opacity-0 group-hover:opacity-50 transition-all -z-10 skew-x-[-20deg]" />
+              <div className="absolute inset-0 border-2 border-red-600 translate-x-1 -translate-y-1 opacity-0 group-hover:opacity-50 transition-all -z-10 skew-x-[-20deg]" />
+            </motion.div>
+          </Link>
+
+          <p className="mt-6 font-mono text-[10px] text-zinc-600 tracking-widest uppercase animate-pulse">
+            [ Click to expand full database ]
+          </p>
+        </div>
+
+        {/* ... closing </div> of max-w-7xl ... */}
       </div>
     </section>
   );
