@@ -1,13 +1,80 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Lock, ShieldCheck, Target, User, Zap, Globe, Phone, Mail, School, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+    Lock,
+    ShieldCheck,
+    Target,
+    User,
+    Zap,
+    Phone,
+    Mail,
+    School,
+    Eye,
+    EyeOff,
+} from "lucide-react";
 
 export default function RegisterPortal() {
     const [isGlitching, setIsGlitching] = useState(false);
     const [showPass, setShowPass] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
     const [webs, setWebs] = useState<{ id: number; x: number; y: number }[]>([]);
+    const router = useRouter();
+
+    const [form, setForm] = useState<{
+        name: string;
+        email: string;
+        phone: string;
+        department: string;
+        college: string;
+        password: string;
+        confirmPassword: string;
+    }>({
+        name: "",
+        email: "",
+        phone: "",
+        department: "",
+        college: "",
+        password: "",
+        confirmPassword: "",
+    });
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        if (form.password !== form.confirmPassword) {
+            alert("Passwords do not match");
+            return;
+        }
+
+        const res = await fetch("/api/auth/register", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                name: form.name,
+                email: form.email,
+                phone: form.phone,
+                department: form.department,
+                college: form.college,
+                password: form.password,
+            }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message);
+            return;
+        }
+
+        router.push("/login");
+    };
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -19,12 +86,11 @@ export default function RegisterPortal() {
 
     const handleInteraction = (e: React.MouseEvent) => {
         const id = Date.now();
-        setWebs((prev) => [...prev, { id, x: e.clientX, y: e.clientY }]);
+        setWebs(prev => [...prev, { id, x: e.clientX, y: e.clientY }]);
         setTimeout(() => {
-            setWebs((prev) => prev.filter(w => w.id !== id));
+            setWebs(prev => prev.filter(w => w.id !== id));
         }, 600);
     };
-
     return (
         <div
             onClick={handleInteraction}
@@ -130,13 +196,20 @@ export default function RegisterPortal() {
                             <p className="text-[8px] text-gray-400 font-black tracking-[0.4em] uppercase mt-1">Stark Protocol v2.6</p>
                         </div>
 
-                        <form className="space-y-2.5" onClick={e => e.stopPropagation()}>
+                        <form className="space-y-2.5" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
                             {/* NAME */}
                             <div className="space-y-1">
-                                <label className="elegant-label">Agent Name</label>
+                                <label className="elegant-label">Team Name</label>
                                 <div className="stark-input-container flex items-center px-4 py-2">
                                     <User className="w-3.5 h-3.5 text-red-700 mr-3 opacity-50" />
-                                    <input type="text" placeholder="FULL NAME" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase" />
+                                    {/* <input type="text" placeholder="FULL NAME" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase" /> */}
+                                    <input
+                                        name="name"
+                                        value={form.name}
+                                        onChange={handleChange}
+                                        type="text"
+                                        className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase"
+                                    />
                                 </div>
                             </div>
 
@@ -146,7 +219,14 @@ export default function RegisterPortal() {
                                     <label className="elegant-label">Gmail</label>
                                     <div className="stark-input-container flex items-center px-4 py-2">
                                         <Mail className="w-3.5 h-3.5 text-red-700 mr-2 opacity-50" />
-                                        <input type="email" placeholder="ID" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase" />
+                                        <input
+                                            name="email"
+                                            value={form.email}
+                                            onChange={handleChange}
+                                            type="email"
+                                            className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 "
+                                        />
+                                        {/* <input type="email" placeholder="ID" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase" /> */}
                                     </div>
                                 </div>
                                 {/* PHONE */}
@@ -154,7 +234,14 @@ export default function RegisterPortal() {
                                     <label className="elegant-label">Phone</label>
                                     <div className="stark-input-container flex items-center px-4 py-2">
                                         <Phone className="w-3.5 h-3.5 text-red-700 mr-2 opacity-50" />
-                                        <input type="tel" placeholder="000..." className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0" />
+                                        <input
+                                            type="tel"
+                                            name="phone"
+                                            value={form.phone}
+                                            onChange={handleChange}
+                                            placeholder="000..."
+                                            className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0"
+                                        />
                                     </div>
                                 </div>
                             </div>
@@ -164,7 +251,32 @@ export default function RegisterPortal() {
                                 <label className="elegant-label">Origin College</label>
                                 <div className="stark-input-container flex items-center px-4 py-2">
                                     <School className="w-3.5 h-3.5 text-red-700 mr-3 opacity-50" />
-                                    <input type="text" placeholder="CAMPUS NAME" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase" />
+                                    <input
+                                        type="text"
+                                        name="college"
+                                        value={form.college}
+                                        onChange={handleChange}
+                                        placeholder="CAMPUS NAME"
+                                        className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase"
+                                    />
+
+                                </div>
+                            </div>
+
+                            {/* COLLEGE */}
+                            <div className="space-y-1">
+                                <label className="elegant-label">Department </label>
+                                <div className="stark-input-container flex items-center px-4 py-2">
+                                    <School className="w-3.5 h-3.5 text-red-700 mr-3 opacity-50" />
+                                    <input
+                                        type="text"
+                                        name="department"
+                                        value={form.department}
+                                        onChange={handleChange}
+                                        placeholder="Department.."
+                                        className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0 uppercase"
+                                    />
+
                                 </div>
                             </div>
 
@@ -173,7 +285,14 @@ export default function RegisterPortal() {
                                 <label className="elegant-label">Access Key</label>
                                 <div className="stark-input-container flex items-center px-4 py-2">
                                     <Lock className="w-3.5 h-3.5 text-red-700 mr-3 opacity-50" />
-                                    <input type={showPass ? "text" : "password"} placeholder="KEY_616" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0" />
+                                    <input
+                                        name="password"
+                                        value={form.password}
+                                        onChange={handleChange}
+                                        type={showPass ? "text" : "password"}
+                                        className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0"
+                                    />
+                                    {/* <input type={showPass ? "text" : "password"} placeholder="KEY_616" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0" /> */}
                                     <button type="button" onClick={() => setShowPass(!showPass)}>
                                         {showPass ? <EyeOff className="w-4 h-4 text-red-600" /> : <Eye className="w-4 h-4 text-red-800 opacity-40" />}
                                     </button>
@@ -185,7 +304,14 @@ export default function RegisterPortal() {
                                 <label className="elegant-label">Verify Key</label>
                                 <div className="stark-input-container flex items-center px-4 py-2">
                                     <ShieldCheck className="w-3.5 h-3.5 text-red-700 mr-3 opacity-50" />
-                                    <input type={showConfirm ? "text" : "password"} placeholder="REPEAT_KEY" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0" />
+                                    <input
+                                        name="confirmPassword"
+                                        value={form.confirmPassword}
+                                        onChange={handleChange}
+                                        type={showConfirm ? "text" : "password"}
+                                        className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0"
+                                    />
+                                    {/* <input type={showConfirm ? "text" : "password"} placeholder="REPEAT_KEY" className="stark-field bg-transparent border-none outline-none text-xs w-full focus:ring-0" /> */}
                                     <button type="button" onClick={() => setShowConfirm(!showConfirm)}>
                                         {showConfirm ? <EyeOff className="w-4 h-4 text-red-600" /> : <Eye className="w-4 h-4 text-red-800 opacity-40" />}
                                     </button>

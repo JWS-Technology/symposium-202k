@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Lock, ShieldCheck, Target, User, Zap, Globe, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 
 const QUOTES = [
     { text: "With great power comes great responsibility.", side: "left" },
@@ -14,6 +16,12 @@ export default function SpiderPortal() {
     const [isGlitching, setIsGlitching] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [webs, setWebs] = useState<{ id: number; x: number; y: number }[]>([]);
+    const router = useRouter();
+    const [form, setForm] = useState({
+        email: "",
+        password: "",
+    });
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -22,6 +30,38 @@ export default function SpiderPortal() {
         }, 4500);
         return () => clearInterval(interval);
     }, []);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setForm(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const res = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(form),
+        });
+
+        const data = await res.json();
+        setLoading(false);
+
+        if (!res.ok) {
+            alert(data.message);
+            return;
+        }
+
+        // store token
+        localStorage.setItem("token", data.token);
+
+
+
+        localStorage.setItem("token", data.token);
+        router.push("/dashboard");
+    };
 
     const handleInteraction = (e: React.MouseEvent) => {
         const id = Date.now();
@@ -178,7 +218,7 @@ export default function SpiderPortal() {
                             <p className="text-[0.6rem] text-gray-500 font-black tracking-[0.6em] uppercase">Auth Terminal</p>
                         </div>
 
-                        <form className="space-y-[1.25rem] sm:space-y-[1.75rem]" onClick={e => e.stopPropagation()}>
+                        <form className="space-y-[1.25rem] sm:space-y-[1.75rem]" onClick={e => e.stopPropagation()} onSubmit={handleSubmit}>
                             {/* USERNAME */}
                             <div className="space-y-[0.5rem]">
                                 <div className="flex justify-between items-center px-[0.25rem]">
@@ -188,7 +228,10 @@ export default function SpiderPortal() {
                                 <div className="stark-input-container flex items-center px-[1rem] py-[0.875rem] sm:py-[1.125rem]">
                                     <User className="w-[1rem] h-[1rem] text-red-700 mr-[0.875rem] opacity-40 shrink-0" />
                                     <input
-                                        type="text"
+                                        type="email"
+                                        name="email"
+                                        value={form.email}
+                                        onChange={handleChange}
                                         placeholder="AGENT_ID"
                                         className="stark-field bg-transparent border-none outline-none text-[0.9375rem] sm:text-[1rem] w-full focus:ring-0 uppercase placeholder:text-white/5"
                                     />
@@ -205,11 +248,14 @@ export default function SpiderPortal() {
                                     <Lock className="w-[1rem] h-[1rem] text-red-700 mr-[0.875rem] opacity-40 shrink-0" />
                                     <input
                                         type={showPassword ? "text" : "password"}
+                                        name="password"
+                                        value={form.password}
+                                        onChange={handleChange}
                                         placeholder="••••••••"
                                         className="stark-field bg-transparent border-none outline-none text-[0.9375rem] sm:text-[1rem] w-full focus:ring-0"
                                     />
                                     <button
-                                        type="button"
+                                        type="submit"
                                         onClick={() => setShowPassword(!showPassword)}
                                         className="ml-[0.5rem] transition-all hover:opacity-100 opacity-40"
                                     >
