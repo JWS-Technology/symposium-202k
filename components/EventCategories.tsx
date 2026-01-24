@@ -43,7 +43,7 @@ export default function EventCategories() {
       id: "TECHNICAL",
       title: "Technical",
       description: "Backend challenges and technical problem solving.",
-      path: "/events/off-stage",
+      path: "/events/technical",
       icon: <FaMasksTheater />,
       img: "/images/spider_man_bg.png",
       accent: "text-red-500",
@@ -53,7 +53,7 @@ export default function EventCategories() {
       id: "NON-TECHNICAL",
       title: "Non Technical",
       description: "Spotlight missions requiring live technical presentation.",
-      path: "/events/on-stage",
+      path: "/events/non-technical",
       icon: <FaMicrochip />,
       img: "/images/spider_man_bg.png",
       accent: "text-cyan-400",
@@ -182,7 +182,7 @@ export default function EventCategories() {
 
               {/* SECTION ID LABEL */}
               <div className="absolute -bottom-4 left-4 font-mono text-[9px] text-zinc-700 bg-black px-2 z-30">
-                0{idx + 1} // ADDR_{cat.id}
+                0{idx + 1} {cat.id}
               </div>
             </Link>
           ))}
