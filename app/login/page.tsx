@@ -69,7 +69,7 @@ export default function SpiderPortal() {
     return (
         <div
             onClick={handleInteraction}
-            className="relative min-h-screen w-full bg-[#020202] overflow-hidden flex items-center justify-center cursor-crosshair font-sans p-4"
+            className="relative min-h-screen w-full bg-[#020202] overflow-hidden flex items-center justify-center cursor-crosshair font-sans p-4 pt-12"
         >
             <style jsx global>{`
                 @keyframes float-ui {
