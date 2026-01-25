@@ -30,6 +30,7 @@ interface Participant {
     dno: string;
     email: string;
     event: string;
+    eventType: string;
     createdAt: string;
 }
 
@@ -313,9 +314,15 @@ export default function DashboardPage() {
                                         </p>
                                     </div>
 
-                                    <div className="text-xs font-mono uppercase tracking-widest text-red-500">
-                                        {p.event}
+                                    <div className="text-right">
+                                        <p className="text-xs font-mono uppercase tracking-widest text-red-500">
+                                            {p.event}
+                                        </p>
+                                        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
+                                            {p.eventType}
+                                        </p>
                                     </div>
+
                                 </div>
                             ))}
                         </div>
