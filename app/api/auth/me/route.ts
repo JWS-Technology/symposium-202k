@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 import { connect } from "@/dbconfig/db";
-import User from "@/models/team.model";
+import User from "@/models/User";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
