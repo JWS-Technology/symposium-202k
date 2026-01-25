@@ -19,6 +19,7 @@ export default function AdminPaymentsPage() {
     const [loading, setLoading] = useState(true);
     const [verifyingId, setVerifyingId] = useState<string | null>(null);
 
+    // ✅ FETCH PARTICIPANTS (ADMIN)
     useEffect(() => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
@@ -26,14 +27,16 @@ export default function AdminPaymentsPage() {
             return;
         }
 
-        fetch("/api/admin/participants", {
+        fetch("/api/participants", {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(res => res.json())
             .then(data => setParticipants(data.participants))
+            .catch(err => console.error("Fetch error:", err))
             .finally(() => setLoading(false));
     }, [router]);
 
+    // ✅ VERIFY PAYMENT (ADMIN)
     const verifyPayment = async (id: string) => {
         const token = localStorage.getItem("adminToken");
         if (!token) return;
@@ -49,17 +52,23 @@ export default function AdminPaymentsPage() {
             body: JSON.stringify({ participantId: id }),
         });
 
-        if (res.ok) {
-            setParticipants(prev =>
-                prev.map(p =>
-                    p._id === id
-                        ? { ...p, paymentStatus: "PAID" }
-                        : p
-                )
-            );
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.message || "Payment verification failed");
+            setVerifyingId(null);
+            return;
         }
 
+        // ✅ UPDATE UI WITHOUT RELOAD
+        setParticipants(prev =>
+            prev.map(p =>
+                p._id === id ? { ...p, paymentStatus: "PAID" } : p
+            )
+        );
+
         setVerifyingId(null);
+        alert("Payment verified & email sent ✅");
     };
 
     return (
@@ -80,9 +89,7 @@ export default function AdminPaymentsPage() {
                             className="bg-[#050505] border border-zinc-800 rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4"
                         >
                             <div>
-                                <p className="font-bold text-white">
-                                    {p.name}
-                                </p>
+                                <p className="font-bold text-white">{p.name}</p>
                                 <p className="text-xs text-zinc-400">
                                     {p.email} • TEAM-{p.teamId}
                                 </p>
@@ -100,9 +107,7 @@ export default function AdminPaymentsPage() {
                             </div>
 
                             <div className="text-right space-y-2">
-                                <p className="font-bold">
-                                    ₹{p.paymentAmount}
-                                </p>
+                                <p className="font-bold">₹{p.paymentAmount}</p>
 
                                 {p.paymentStatus === "PAID" ? (
                                     <span className="inline-block px-3 py-1 text-xs font-bold rounded bg-green-600/20 text-green-400">

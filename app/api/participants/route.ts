@@ -124,3 +124,35 @@ export async function POST(req: Request) {
     );
   }
 }
+
+export async function GET(req: Request) {
+  try {
+    await connect();
+
+    /* ---------- ADMIN AUTH ---------- */
+    const auth = req.headers.get("authorization");
+    if (!auth?.startsWith("Bearer ")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = auth.split(" ")[1];
+    const decoded = jwt.verify(token, JWT_SECRET) as { role?: string };
+
+    if (decoded.role !== "ADMIN") {
+      return NextResponse.json({ message: "Forbidden" }, { status: 403 });
+    }
+
+    /* ---------- FETCH ALL PARTICIPANTS ---------- */
+    const participants = await Participant.find()
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return NextResponse.json({
+      count: participants.length,
+      participants,
+    });
+  } catch (error) {
+    console.error("ADMIN FETCH PARTICIPANTS ERROR:", error);
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
+  }
+}

@@ -1,13 +1,24 @@
 import jwt from "jsonwebtoken";
 
-export function verifyAdmin(token?: string) {
-  if (!token) throw new Error("Unauthorized");
+const JWT_SECRET = process.env.JWT_SECRET!;
 
-  const decoded: any = jwt.verify(token, process.env.JWT_SECRET!);
+export function verifyAdminToken(req: Request) {
+  const auth = req.headers.get("authorization");
 
-  if (decoded.role !== "ADMIN") {
-    throw new Error("Forbidden");
+  if (!auth || !auth.startsWith("Bearer ")) {
+    throw new Error("UNAUTHORIZED");
   }
 
-  return decoded;
+  const token = auth.split(" ")[1];
+
+  const decoded = jwt.verify(token, JWT_SECRET) as {
+    role?: string;
+    adminId?: string;
+  };
+
+  if (decoded.role !== "ADMIN") {
+    throw new Error("FORBIDDEN");
+  }
+
+  return decoded; // ✅ THIS WAS MISSING
 }

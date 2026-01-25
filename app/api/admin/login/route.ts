@@ -1,3 +1,4 @@
+// app/api/admin/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connect } from "@/dbconfig/db";
 import Admin from "@/models/admin.model";
@@ -10,6 +11,13 @@ export async function POST(req: NextRequest) {
 
     const { email, password } = await req.json();
 
+    if (!email || !password) {
+      return NextResponse.json(
+        { message: "Email and password required" },
+        { status: 400 },
+      );
+    }
+
     const admin = await Admin.findOne({ email });
     if (!admin) {
       return NextResponse.json(
@@ -18,16 +26,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const match = await bcrypt.compare(password, admin.password);
-    if (!match) {
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
       return NextResponse.json(
         { message: "Invalid credentials" },
         { status: 401 },
       );
     }
 
+    // ✅ PERFECT TOKEN
     const token = jwt.sign(
-      { adminId: admin._id, role: "ADMIN" },
+      {
+        adminId: admin._id.toString(),
+        role: "ADMIN",
+      },
       process.env.JWT_SECRET!,
       { expiresIn: "1d" },
     );

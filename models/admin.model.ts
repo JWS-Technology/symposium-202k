@@ -1,14 +1,12 @@
-import mongoose, { Schema, Document } from "mongoose";
+// models/admin.model.ts
+import mongoose, { Schema, models, model } from "mongoose";
 
-export interface AdminDocument extends Document {
-  email: string;
-  password: string;
-}
+const AdminSchema = new Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+  },
+  { timestamps: true },
+);
 
-const AdminSchema = new Schema<AdminDocument>({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-});
-
-export default mongoose.models.Admin ||
-  mongoose.model<AdminDocument>("Admin", AdminSchema);
+export default models.Admin || model("Admin", AdminSchema);
