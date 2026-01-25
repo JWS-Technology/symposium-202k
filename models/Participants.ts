@@ -23,11 +23,6 @@ const ParticipantSchema = new Schema(
       type: String,
       required: true,
     },
-    eventType: {
-      type: String,
-      required: true,
-      enum: ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"],
-    },
   },
   { timestamps: true },
 );
