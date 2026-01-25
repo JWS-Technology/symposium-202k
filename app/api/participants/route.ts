@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import { connect } from "@/dbconfig/db";
 import User from "@/models/User";
 import Participant from "@/models/Participants";
+import PaymentQR from "@/components/PaymentQR";
+import PaymentConfig from "@/models/PaymentConfig";
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
@@ -10,6 +12,7 @@ export async function POST(req: Request) {
   try {
     await connect();
 
+    /* ---------- AUTH ---------- */
     const auth = req.headers.get("authorization");
     if (!auth || !auth.startsWith("Bearer ")) {
       return NextResponse.json(
@@ -29,31 +32,86 @@ export async function POST(req: Request) {
       );
     }
 
+    /* ---------- BODY ---------- */
     const body = await req.json();
     const { name, dno, email, event, eventType } = body;
 
     if (!name || !dno || !email || !event || !eventType) {
       return NextResponse.json(
-        {
-          message: "All fields are required",
-          received: body,
-        },
+        { message: "All fields are required" },
         { status: 400 },
       );
     }
 
-    const participant = await Participant.create({
+    /* ---------- FIND PARTICIPANT ---------- */
+    let participant = await Participant.findOne({
+      teamId: user.teamId,
+      email,
+    });
+
+    /* ---------- IF PARTICIPANT EXISTS ---------- */
+    if (participant) {
+      // ❌ already selected this event
+      const alreadyJoined = participant.events.some(
+        (e: any) => e.eventName === event,
+      );
+
+      if (alreadyJoined) {
+        return NextResponse.json(
+          { message: "Participant already registered for this event" },
+          { status: 400 },
+        );
+      }
+
+      // ❌ max 2 events rule
+      if (participant.events.length >= 2) {
+        return NextResponse.json(
+          { message: "Participant can join maximum 2 events" },
+          { status: 400 },
+        );
+      }
+
+      // ✅ add new event
+      participant.events.push({
+        eventName: event,
+        eventType,
+      });
+
+      await participant.save();
+
+      return NextResponse.json(
+        {
+          message: "Event added to existing participant",
+          participant,
+        },
+        { status: 200 },
+      );
+    }
+
+    /* ---------- PAYMENT CONFIG ---------- */
+    const PAYMENT_AMOUNT = Number(
+      process.env.NEXT_PUBLIC_DEFAULT_AMOUNT || 500,
+    );
+
+    /* ---------- CREATE NEW PARTICIPANT ---------- */
+    participant = await Participant.create({
       teamId: user.teamId,
       name,
       dno,
       email,
-      eventType,
-      event,
+      events: [
+        {
+          eventName: event,
+          eventType,
+        },
+      ],
+      paymentAmount: PAYMENT_AMOUNT, // ✅ REQUIRED FIELD
+      paymentStatus: "PENDING",
     });
 
     return NextResponse.json(
       {
-        message: "Participant added successfully",
+        message: "Participant created successfully",
         participant,
       },
       { status: 201 },

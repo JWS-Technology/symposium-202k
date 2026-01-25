@@ -11,14 +11,23 @@ export default function AdminDashboard() {
                 Admin Control Panel
             </h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl">
                 <AdminButton
                     label="View Participants"
+                    desc="All registered participants"
                     onClick={() => router.push("/admin/participants")}
                 />
 
                 <AdminButton
+                    label="Verify Payments"
+                    desc="Pending & paid transactions"
+                    highlight
+                    onClick={() => router.push("/admin/payments")}
+                />
+
+                <AdminButton
                     label="View Events"
+                    desc="Manage symposium events"
                     onClick={() => router.push("/admin/events")}
                 />
             </div>
@@ -28,17 +37,28 @@ export default function AdminDashboard() {
 
 function AdminButton({
     label,
+    desc,
     onClick,
+    highlight = false,
 }: {
     label: string;
+    desc: string;
     onClick: () => void;
+    highlight?: boolean;
 }) {
     return (
         <button
             onClick={onClick}
-            className="bg-[#050505] border border-red-600/40 hover:bg-red-600 hover:text-black transition-all p-6 rounded-xl text-left font-bold uppercase tracking-widest"
+            className={`p-6 rounded-xl text-left transition-all border
+                ${highlight
+                    ? "bg-red-600/10 border-red-600 hover:bg-red-600 hover:text-black"
+                    : "bg-[#050505] border-zinc-800 hover:border-red-600 hover:bg-[#0a0a0a]"
+                }`}
         >
-            {label}
+            <p className="font-black uppercase tracking-widest text-sm mb-2">
+                {label}
+            </p>
+            <p className="text-xs text-zinc-400">{desc}</p>
         </button>
     );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import {
@@ -12,6 +12,8 @@ import {
     LogOut,
     ShieldAlert,
 } from "lucide-react";
+import PaymentQR from "@/components/PaymentQR";
+
 
 /* ================= TYPES ================= */
 
@@ -25,6 +27,9 @@ interface UserData {
 }
 
 interface Participant {
+    events: any;
+    paymentStatus: string;
+    paymentAmount: ReactNode;
     _id: string;
     name: string;
     dno: string;
@@ -57,6 +62,10 @@ export default function DashboardPage() {
 
     const [showParticipantForm, setShowParticipantForm] = useState(false);
     const [saving, setSaving] = useState(false);
+    // payment modal states
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [payParticipant, setPayParticipant] = useState<any>(null);
+
 
     const [participant, setParticipant] = useState({
         name: "",
@@ -194,8 +203,11 @@ export default function DashboardPage() {
             eventType: "",
         });
 
-        setShowParticipantForm(false);
+        // setShowParticipantForm(false);
         fetchParticipants();
+        // ✅ MOVE TO PAYMENT STEP
+        // setCreatedParticipant(data.participant);
+        // setPaymentStep("PAYMENT");
     };
 
     /* ================= LOADING ================= */
@@ -288,6 +300,42 @@ export default function DashboardPage() {
                     </motion.div>
                 </div>
 
+                {/* PAYMENT MODAL */}
+                {showPaymentModal && payParticipant && (
+                    <div className="fixed inset-0 z-[300] bg-black/80 flex items-center justify-center">
+                        <div className="bg-[#050505] border border-red-600/30 rounded-2xl p-8 w-full max-w-md">
+
+                            <h2 className="text-white font-black uppercase tracking-widest mb-4 text-sm">
+                                Complete Payment
+                            </h2>
+
+                            <PaymentQR
+                                teamId={user.teamId}
+                                email={payParticipant.email}
+                                amount={payParticipant.paymentAmount}
+                            />
+
+                            <p className="text-xs text-zinc-400 text-center mt-4">
+                                After payment, admin will verify and confirmation will be sent by email.
+                            </p>
+
+                            <div className="flex justify-center mt-6">
+                                <button
+                                    onClick={() => {
+                                        setShowPaymentModal(false);
+                                        setPayParticipant(null);
+                                    }}
+                                    className="px-6 py-2 bg-red-600 text-white font-bold rounded"
+                                >
+                                    Close
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+                )}
+
+
                 {/* PARTICIPANTS */}
                 <div className="mt-12 bg-[#050505] border border-zinc-900 rounded-2xl p-6">
                     <h3 className="text-red-600 font-black uppercase tracking-[0.3em] text-xs mb-6">
@@ -312,19 +360,38 @@ export default function DashboardPage() {
                                         <p className="text-xs text-zinc-500">
                                             {p.email} • {p.dno}
                                         </p>
+
+                                        <div className="mt-1 space-y-1">
+                                            {p.events.map((ev: { eventName: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; eventType: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; }, idx: Key | null | undefined) => (
+                                                <p key={idx} className="text-[10px] font-mono uppercase tracking-widest text-red-500">
+                                                    {ev.eventName} ({ev.eventType})
+                                                </p>
+                                            ))}
+                                        </div>
                                     </div>
 
-                                    <div className="text-right">
-                                        <p className="text-xs font-mono uppercase tracking-widest text-red-500">
-                                            {p.event}
-                                        </p>
-                                        <p className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">
-                                            {p.eventType}
-                                        </p>
-                                    </div>
+                                    <div className="text-right space-y-2">
+                                        {p.paymentStatus === "PAID" ? (
+                                            <span className="px-3 py-1 text-xs font-bold rounded bg-green-600/20 text-green-400">
+                                                PAID
+                                            </span>
+                                        ) : (
+                                            <button
+                                                onClick={() => {
+                                                    setPayParticipant(p);
+                                                    setShowPaymentModal(true);
+                                                }}
+                                                className="px-4 py-1 text-xs bg-red-600 text-white rounded font-bold"
+                                            >
+                                                Pay ₹{p.paymentAmount}
+                                            </button>
 
+                                        )}
+
+                                    </div>
                                 </div>
                             ))}
+
                         </div>
                     )}
                 </div>
@@ -339,18 +406,23 @@ export default function DashboardPage() {
                         </h2>
 
                         <form onSubmit={handleAddParticipant} className="space-y-4">
+                            {/* Name */}
                             <input
                                 placeholder="Name"
                                 value={participant.name}
                                 onChange={e => setParticipant({ ...participant, name: e.target.value })}
                                 className="w-full bg-black border border-zinc-800 p-3 rounded text-white"
                             />
+
+                            {/* D.No */}
                             <input
                                 placeholder="D.No"
                                 value={participant.dno}
                                 onChange={e => setParticipant({ ...participant, dno: e.target.value })}
                                 className="w-full bg-black border border-zinc-800 p-3 rounded text-white"
                             />
+
+                            {/* Email */}
                             <input
                                 placeholder="Email"
                                 value={participant.email}
@@ -358,14 +430,14 @@ export default function DashboardPage() {
                                 className="w-full bg-black border border-zinc-800 p-3 rounded text-white"
                             />
 
-                            {/* EVENT TYPE */}
+                            {/* Event Type */}
                             <select
                                 value={participant.eventType}
                                 onChange={e =>
                                     setParticipant({
                                         ...participant,
                                         eventType: e.target.value,
-                                        event: "", // reset event when type changes
+                                        event: "",
                                     })
                                 }
                                 className="w-full bg-black border border-zinc-800 p-3 rounded text-white"
@@ -376,21 +448,17 @@ export default function DashboardPage() {
                                 <option value="CULTURALS">CULTURALS</option>
                             </select>
 
-                            {/* EVENT NAME */}
+                            {/* Event Name */}
                             <select
                                 value={participant.event}
-                                onChange={e =>
-                                    setParticipant({ ...participant, event: e.target.value })
-                                }
+                                onChange={e => setParticipant({ ...participant, event: e.target.value })}
+                                disabled={!participant.eventType}
                                 className="w-full bg-black border border-zinc-800 p-3 rounded text-white"
-                                disabled={loadingEvents || !participant.eventType}
                             >
                                 <option value="">
                                     {!participant.eventType
                                         ? "Select Event Type first"
-                                        : loadingEvents
-                                            ? "Loading events..."
-                                            : "Select Event"}
+                                        : "Select Event"}
                                 </option>
 
                                 {events
@@ -402,8 +470,6 @@ export default function DashboardPage() {
                                     ))}
                             </select>
 
-
-
                             <div className="flex justify-end gap-3 pt-4">
                                 <button
                                     type="button"
@@ -412,18 +478,21 @@ export default function DashboardPage() {
                                 >
                                     Cancel
                                 </button>
+
                                 <button
                                     type="submit"
                                     disabled={saving}
                                     className="px-6 py-2 bg-red-600 text-white font-bold rounded"
                                 >
-                                    {saving ? "Saving..." : "Add"}
+                                    {saving ? "Saving..." : "Add Participant"}
                                 </button>
                             </div>
                         </form>
                     </div>
                 </div>
             )}
+
+
 
             <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] bg-[length:100%_4px] opacity-20" />
         </div>
