@@ -38,7 +38,7 @@ export async function POST(req: Request) {
       nextNumber = lastNumber + 1;
     }
 
-    const teamId = `ARA-${nextNumber}`;
+    const teamId = `AZ-${nextNumber}`;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 

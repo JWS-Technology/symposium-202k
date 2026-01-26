@@ -2,24 +2,19 @@ import { NextResponse } from "next/server";
 import { connect } from "@/dbconfig/db";
 import Participant from "@/models/Participants";
 import User from "@/models/User";
-import { sendPaymentSuccessMail } from "@/lib/mailer";
+import { sendPaymentSuccessMailSES } from "@/lib/mailsend"; // Updated Import
 import { verifyAdminToken } from "@/lib/adminAuth";
 
 export async function POST(req: Request) {
   try {
     await connect();
 
-    /* ---------- ADMIN AUTH (UPDATED) ---------- */
+    /* ---------- ADMIN AUTH ---------- */
     try {
       verifyAdminToken(req);
     } catch (err: any) {
-      if (err.message === "UNAUTHORIZED") {
-        return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-      }
-      if (err.message === "FORBIDDEN") {
-        return NextResponse.json({ message: "Forbidden" }, { status: 403 });
-      }
-      throw err;
+      const status = err.message === "FORBIDDEN" ? 403 : 401;
+      return NextResponse.json({ message: err.message }, { status });
     }
 
     /* ---------- BODY ---------- */
@@ -40,39 +35,51 @@ export async function POST(req: Request) {
       );
     }
 
+    // Optimization: Check if already paid
+    if (participant.paymentStatus === "PAID") {
+      return NextResponse.json(
+        { message: "Already verified" },
+        { status: 200 },
+      );
+    }
+
     /* ---------- UPDATE PAYMENT ---------- */
     participant.paymentStatus = "PAID";
     await participant.save();
 
     /* ---------- FIND TEAM LEADER ---------- */
-    const teamLeader = await User.findOne({
-      teamId: participant.teamId,
-    });
+    const teamLeader = await User.findOne({ teamId: participant.teamId });
 
-    /* ---------- SEND EMAILS (OPTION B – UNCHANGED) ---------- */
+    /* ---------- SEND EMAILS VIA SES ---------- */
+    const emailPromises = [];
 
-    // Participant email
-    await sendPaymentSuccessMail({
-      to: participant.email,
-      name: participant.name,
-      teamId: participant.teamId,
-      amount: participant.paymentAmount,
-      role: "PARTICIPANT",
-    });
-
-    // Team leader email
-    if (teamLeader?.email) {
-      await sendPaymentSuccessMail({
-        to: teamLeader.email,
-        name: teamLeader.name,
+    // 1. To Participant
+    emailPromises.push(
+      sendPaymentSuccessMailSES({
+        to: participant.email,
+        name: participant.name,
         teamId: participant.teamId,
         amount: participant.paymentAmount,
-        role: "TEAM",
-      });
+      }),
+    );
+
+    // 2. To Team Leader (Optional)
+    if (teamLeader?.email && teamLeader.email !== participant.email) {
+      emailPromises.push(
+        sendPaymentSuccessMailSES({
+          to: teamLeader.email,
+          name: teamLeader.name,
+          teamId: participant.teamId,
+          amount: participant.paymentAmount,
+        }),
+      );
     }
 
+    // Wait for all emails to fire
+    await Promise.allSettled(emailPromises);
+
     return NextResponse.json({
-      message: "Payment verified & emails sent",
+      message: "Payment verified & confirmation emails dispatched",
       participant,
     });
   } catch (error) {
