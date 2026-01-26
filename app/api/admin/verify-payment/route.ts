@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { connect } from "@/dbconfig/db";
 import Participant from "@/models/Participants";
 import User from "@/models/User";
-import { sendPaymentSuccessMailSES } from "@/lib/mailsend"; // Updated Import
+import { sendPaymentSuccessMailSES } from "@/lib/mailer"; // Updated Import
 import { verifyAdminToken } from "@/lib/adminAuth";
 
 export async function POST(req: Request) {

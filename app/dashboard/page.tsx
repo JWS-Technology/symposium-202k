@@ -239,8 +239,8 @@ export default function DashboardPage() {
                                     key={type}
                                     onClick={() => setActiveFilter(type)}
                                     className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${activeFilter === type
-                                            ? "bg-red-600 border-red-600 text-white shadow-[0_0_10px_rgba(220,38,38,0.2)]"
-                                            : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
+                                        ? "bg-red-600 border-red-600 text-white shadow-[0_0_10px_rgba(220,38,38,0.2)]"
+                                        : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
                                         }`}
                                 >
                                     {type}
