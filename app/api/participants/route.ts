@@ -3,22 +3,21 @@ import jwt from "jsonwebtoken";
 import { connect } from "@/dbconfig/db";
 import User from "@/models/User";
 import Participant from "@/models/Participants";
-import PaymentQR from "@/components/PaymentQR";
-import PaymentConfig from "@/models/PaymentConfig";
+import Event from "@/models/event.model"; // ✅ FIX 1: import Event model
 
 const JWT_SECRET = process.env.JWT_SECRET!;
 
+/* =========================
+   POST: ADD PARTICIPANT
+========================= */
 export async function POST(req: Request) {
   try {
     await connect();
 
     /* ---------- AUTH ---------- */
     const auth = req.headers.get("authorization");
-    if (!auth || !auth.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { message: "Unauthorized - token missing" },
-        { status: 401 },
-      );
+    if (!auth?.startsWith("Bearer ")) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
     const token = auth.split(" ")[1];
@@ -26,19 +25,37 @@ export async function POST(req: Request) {
 
     const user = await User.findById(decoded.id);
     if (!user) {
-      return NextResponse.json(
-        { message: "User not found for token" },
-        { status: 404 },
-      );
+      return NextResponse.json({ message: "User not found" }, { status: 404 });
     }
 
     /* ---------- BODY ---------- */
-    const body = await req.json();
-    const { name, dno, email, event, eventType } = body;
+    const { name, dno, email, eventName, eventType } = await req.json();
 
-    if (!name || !dno || !email || !event || !eventType) {
+    if (!name || !dno || !email || !eventName || !eventType) {
       return NextResponse.json(
         { message: "All fields are required" },
+        { status: 400 },
+      );
+    }
+
+    /* ---------- FIND EVENT ---------- */
+    const eventConfig = await Event.findOne({ eventName, eventType });
+    if (!eventConfig) {
+      return NextResponse.json(
+        { message: "Invalid event selected" },
+        { status: 400 },
+      );
+    }
+
+    /* ---------- TEAM EVENT LIMIT CHECK ---------- */
+    const teamEventCount = await Participant.countDocuments({
+      teamId: user.teamId,
+      "events.eventName": eventName,
+    });
+
+    if (teamEventCount >= eventConfig.maxPlayers) {
+      return NextResponse.json(
+        { message: `Max players reached for ${eventName}` },
         { status: 400 },
       );
     }
@@ -49,49 +66,40 @@ export async function POST(req: Request) {
       email,
     });
 
-    /* ---------- IF PARTICIPANT EXISTS ---------- */
     if (participant) {
-      // ❌ already selected this event
-      const alreadyJoined = participant.events.some(
-        (e: any) => e.eventName === event,
-      );
+      const events = participant.events as {
+        eventName: string;
+        eventType: string;
+      }[];
 
-      if (alreadyJoined) {
+      /* ❌ already joined this event */
+      const exists = events.some((ev) => ev.eventName === eventName);
+
+      if (exists) {
         return NextResponse.json(
           { message: "Participant already registered for this event" },
           { status: 400 },
         );
       }
 
-      // ❌ max 2 events rule
-      if (participant.events.length >= 2) {
+      /* ❌ max 2 events rule */
+      if (events.length >= 2) {
         return NextResponse.json(
           { message: "Participant can join maximum 2 events" },
           { status: 400 },
         );
       }
 
-      // ✅ add new event
-      participant.events.push({
-        eventName: event,
-        eventType,
-      });
-
+      /* ✅ add event */
+      events.push({ eventName, eventType });
+      participant.events = events;
       await participant.save();
 
       return NextResponse.json(
-        {
-          message: "Event added to existing participant",
-          participant,
-        },
+        { message: "Event added", participant },
         { status: 200 },
       );
     }
-
-    /* ---------- PAYMENT CONFIG ---------- */
-    const PAYMENT_AMOUNT = Number(
-      process.env.NEXT_PUBLIC_DEFAULT_AMOUNT || 500,
-    );
 
     /* ---------- CREATE NEW PARTICIPANT ---------- */
     participant = await Participant.create({
@@ -99,32 +107,24 @@ export async function POST(req: Request) {
       name,
       dno,
       email,
-      events: [
-        {
-          eventName: event,
-          eventType,
-        },
-      ],
-      paymentAmount: PAYMENT_AMOUNT, // ✅ REQUIRED FIELD
+      events: [{ eventName, eventType }],
+      paymentAmount: Number(process.env.NEXT_PUBLIC_DEFAULT_AMOUNT || 500),
       paymentStatus: "PENDING",
     });
 
     return NextResponse.json(
-      {
-        message: "Participant created successfully",
-        participant,
-      },
+      { message: "Participant created", participant },
       { status: 201 },
     );
-  } catch (err: any) {
+  } catch (err) {
     console.error("ADD PARTICIPANT ERROR:", err);
-    return NextResponse.json(
-      { message: err.message || "Server error" },
-      { status: 500 },
-    );
+    return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
 
+/* =========================
+   GET: ADMIN FETCH
+========================= */
 export async function GET(req: Request) {
   try {
     await connect();
