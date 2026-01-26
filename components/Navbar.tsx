@@ -138,6 +138,10 @@ export default function Navbar() {
             <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
             Contact
           </Link>
+          <Link href="/rules" className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group font-comic">
+            <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
+            Rules
+          </Link>
 
           <Link href="/register" className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group font-comic">
             <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
