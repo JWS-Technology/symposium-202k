@@ -15,7 +15,8 @@ import {
     Calendar,
     X,
     Filter,
-    Layers
+    Layers,
+    Zap
 } from "lucide-react";
 import PaymentQR from "@/components/PaymentQR";
 
@@ -393,23 +394,32 @@ export default function DashboardPage() {
             </AnimatePresence>
 
             {/* PAYMENT MODAL (UPDATED UI) */}
+            {/* PAYMENT MODAL (UPDATED WITH MOBILE DEEP LINK) */}
             {showPaymentModal && payParticipant && (
                 <div className="fixed inset-0 z-[300] bg-black/98 flex items-center justify-center p-4">
                     <div className="bg-[#050505] border border-red-600/20 rounded-3xl p-8 w-full max-w-sm text-center relative overflow-hidden">
-                        {/* Background glow */}
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-red-600/10 blur-[80px] rounded-full" />
 
                         <h2 className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">SECURE <span className="text-red-600">TRANSACTION_</span></h2>
-                        <p className="text-zinc-600 text-[10px] font-mono mb-8">Node_ID: {payParticipant._id.substring(0, 8)}</p>
+                        <p className="text-zinc-600 text-[10px] font-mono mb-6">Node_ID: {payParticipant._id.substring(0, 8)}</p>
 
+                        {/* QR Code for Desktop Users */}
                         <div className="bg-white p-3 rounded-2xl inline-block mb-6 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
                             <PaymentQR teamId={user?.teamId || ""} email={payParticipant.email} amount={payParticipant.paymentAmount} />
                         </div>
 
-                        <div className="space-y-1 mb-8">
+                        <div className="space-y-1 mb-6">
                             <p className="text-3xl font-black text-white tracking-tighter">₹{payParticipant.paymentAmount}</p>
                             <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest">Amount_Payable</p>
                         </div>
+
+                        {/* NEW: MOBILE UPI REDIRECT BUTTON */}
+                        <a
+                            href={`upi://pay?pa=YOURVPA@okaxis&pn=ARAZON2K26&am=${payParticipant.paymentAmount}&tn=REG_${user?.teamId}_${payParticipant.name.replace(/\s/g, '')}&cu=INR`}
+                            className="w-full py-4 mb-3 bg-white text-black font-black uppercase text-[10px] rounded-2xl flex items-center justify-center gap-2 hover:bg-zinc-200 transition-all tracking-[0.2em]"
+                        >
+                            <Zap size={14} fill="black" /> Open UPI Apps
+                        </a>
 
                         <button
                             onClick={() => { setShowPaymentModal(false); setPayParticipant(null); }}
