@@ -18,7 +18,8 @@ import {
     Layers,
     Zap,
     Trash2,
-    Edit3
+    Edit3,
+    AlertCircle
 } from "lucide-react";
 import PaymentQR from "@/components/PaymentQR";
 
@@ -117,6 +118,45 @@ export default function DashboardPage() {
         } catch (err) { console.error(err); }
     };
 
+    /* ================= DYNAMIC RESTRICTION LOGIC ================= */
+
+    // 1. Sector Lock: Determine if participant is locked into Culturals or Tech/Non-Tech mix
+    const allowedSectors = useMemo(() => {
+        if (!editingId) return ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"];
+
+        const p = participants.find(part => part._id === editingId);
+        if (!p || p.events.length === 0) return ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"];
+
+        // Look at the event that ISN'T the one we are currently changing
+        const anchorEvent = isEditSwap
+            ? p.events.find(ev => ev.eventName !== oldEventName)
+            : p.events[0];
+
+        if (!anchorEvent) return ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"];
+
+        return anchorEvent.eventType === "CULTURALS"
+            ? ["CULTURALS"]
+            : ["TECHNICAL", "NON-TECHNICAL"];
+    }, [editingId, participants, isEditSwap, oldEventName]);
+
+    // 2. Event Duplicate Filter: Hide events the participant already has
+    const filteredEventOptions = useMemo(() => {
+        if (!formData.eventType) return [];
+        let options = events.filter(ev => ev.eventType === formData.eventType);
+
+        if (editingId) {
+            const p = participants.find(part => part._id === editingId);
+            const currentEventNames = p?.events.map(e => e.eventName) || [];
+
+            options = options.filter(ev => {
+                // If swapping, the current old event is allowed back in
+                if (isEditSwap && ev.eventName === oldEventName) return true;
+                return !currentEventNames.includes(ev.eventName);
+            });
+        }
+        return options;
+    }, [formData.eventType, events, editingId, participants, isEditSwap, oldEventName]);
+
     const filteredParticipants = useMemo(() => {
         if (activeFilter === "ALL") return participants;
         return participants.filter(p => p.events.some(ev => ev.eventType === activeFilter));
@@ -147,19 +187,6 @@ export default function DashboardPage() {
 
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Front-end Restriction: Cultural vs Other
-        if (editingId) {
-            const participant = participants.find(p => p._id === editingId);
-            if (participant) {
-                const hasCulturals = participant.events.some(ev => ev.eventType === "CULTURALS");
-                const isNewCultural = formData.eventType === "CULTURALS";
-                if (hasCulturals !== isNewCultural) {
-                    toast.error("RESTRICTION: Cannot mix Culturals with other sectors.", { icon: "🚫" });
-                    return;
-                }
-            }
-        }
 
         const tId = toast.loading("SYNCHRONIZING...");
         setSaving(true);
@@ -240,25 +267,12 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-[#020202] text-zinc-300 relative selection:bg-red-600/30">
-            {/* ✅ TOASTER CONFIG */}
             <Toaster
                 position="bottom-right"
                 toastOptions={{
                     style: {
-                        background: '#050505',
-                        color: '#fff',
-                        border: '1px solid #18181b',
-                        fontSize: '10px',
-                        fontFamily: 'monospace',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.1em'
-                    },
-                    success: {
-                        iconTheme: { primary: '#dc2626', secondary: '#fff' },
-                        style: { border: '1px solid #dc2626' }
-                    },
-                    error: {
-                        style: { border: '1px solid #dc2626', color: '#dc2626' }
+                        background: '#050505', color: '#fff', border: '1px solid #18181b', fontSize: '10px',
+                        fontFamily: 'monospace', textTransform: 'uppercase', letterSpacing: '0.1em'
                     }
                 }}
             />
@@ -279,11 +293,9 @@ export default function DashboardPage() {
                     <div className="flex items-center gap-3">
                         <button
                             onClick={() => { closeForm(); setShowParticipantForm(true); }}
-                            className="px-6 py-3 bg-red-600 text-white font-bold uppercase text-[10px] tracking-widest skew-x-[-12deg] transition-all hover:bg-red-700 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(220,38,38,0.3)]"
+                            className="px-6 py-3 bg-red-600 text-white font-bold uppercase text-[10px] tracking-widest skew-x-[-12deg] transition-all hover:bg-red-700 shadow-[0_0_15px_rgba(220,38,38,0.3)]"
                         >
-                            <span className="inline-block skew-x-[12deg] flex items-center gap-2">
-                                <Plus size={14} /> Add Participant
-                            </span>
+                            <span className="inline-block skew-x-[12deg] flex items-center gap-2"><Plus size={14} /> Add Participant</span>
                         </button>
                         <button onClick={handleLogout} className="px-4 py-3 bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-red-500 transition-colors skew-x-[-12deg]">
                             <LogOut size={16} className="skew-x-[12deg]" />
@@ -313,11 +325,7 @@ export default function DashboardPage() {
                         </h3>
                         <div className="flex gap-4">
                             {["ALL", "TECHNICAL", "NON-TECHNICAL", "CULTURALS"].map((type) => (
-                                <button
-                                    key={type}
-                                    onClick={() => setActiveFilter(type)}
-                                    className={`text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === type ? "text-red-500" : "text-zinc-600 hover:text-zinc-400"}`}
-                                >
+                                <button key={type} onClick={() => setActiveFilter(type)} className={`text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === type ? "text-red-500" : "text-zinc-600 hover:text-zinc-400"}`}>
                                     {type}
                                 </button>
                             ))}
@@ -334,10 +342,7 @@ export default function DashboardPage() {
                                 <div className="grid grid-cols-1 gap-4">
                                     {filteredParticipants.map((p, i) => (
                                         <motion.div
-                                            key={p._id}
-                                            layout
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
+                                            key={p._id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                                             className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-red-600/40 transition-all"
                                         >
                                             <div className="flex-1">
@@ -348,68 +353,37 @@ export default function DashboardPage() {
                                                         <p className="text-[10px] font-mono text-zinc-500 uppercase">{p.dno}</p>
                                                     </div>
                                                 </div>
-
                                                 <div className="mt-4 flex flex-wrap gap-2">
                                                     {p.events.map((ev, idx) => (
-                                                        <div key={idx} className="px-3 py-1 bg-black border border-zinc-800 rounded-md flex items-center gap-3 group/tag">
+                                                        <div key={idx} className="px-3 py-1 bg-black border border-zinc-800 rounded-md flex items-center gap-3">
                                                             <div className="flex flex-col">
                                                                 <span className="text-[7px] text-zinc-600 font-bold uppercase">{ev.eventType}</span>
                                                                 <span className="text-[10px] text-red-500 font-black uppercase">{ev.eventName}</span>
                                                             </div>
                                                             {p.paymentStatus !== "PAID" && (
-                                                                <button
-                                                                    onClick={() => openEditSwapMode(p, idx)}
-                                                                    className="text-zinc-600 hover:text-white transition-colors"
-                                                                    title="Swap Event"
-                                                                >
-                                                                    <Edit3 size={11} />
-                                                                </button>
+                                                                <button onClick={() => openEditSwapMode(p, idx)} className="text-zinc-600 hover:text-white transition-colors"><Edit3 size={11} /></button>
                                                             )}
                                                         </div>
                                                     ))}
-
                                                     {p.events.length < 2 && p.paymentStatus !== "PAID" && (
-                                                        <button
-                                                            onClick={() => openAddEventMode(p)}
-                                                            className="px-3 py-1 border border-dashed border-zinc-800 hover:border-red-600 text-zinc-600 hover:text-red-500 rounded-md text-[9px] font-black uppercase transition-all"
-                                                        >
-                                                            + ADD EVENT
-                                                        </button>
+                                                        <button onClick={() => openAddEventMode(p)} className="px-3 py-1 border border-dashed border-zinc-800 hover:border-red-600 text-zinc-600 hover:text-red-500 rounded-md text-[9px] font-black uppercase">+ ADD EVENT</button>
                                                     )}
                                                 </div>
                                             </div>
 
                                             <div className="flex items-center gap-4">
                                                 {p.paymentStatus === "PAID" ? (
-                                                    <div className="px-4 py-2 bg-green-500/5 border border-green-500/20 rounded-lg text-green-500 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
-                                                        <CheckCircle2 size={12} /> VERIFIED
-                                                    </div>
+                                                    <div className="px-4 py-2 bg-green-500/5 border border-green-500/20 rounded-lg text-green-500 text-[9px] font-black uppercase tracking-widest flex items-center gap-2"><CheckCircle2 size={12} /> VERIFIED</div>
                                                 ) : (
                                                     <div className="flex items-center gap-2">
-                                                        <button
-                                                            onClick={() => { setPayParticipant(p); setShowPaymentModal(true); }}
-                                                            className="px-6 py-2 bg-red-600 text-white font-black text-[10px] rounded-md hover:bg-red-700 transition-all uppercase tracking-widest"
-                                                        >
-                                                            PAY ₹{p.paymentAmount}
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                toast((t) => (
-                                                                    <span className="flex items-center gap-4">
-                                                                        Delete {p.name}?
-                                                                        <button
-                                                                            className="bg-red-600 px-2 py-1 rounded text-[8px] font-bold"
-                                                                            onClick={() => { toast.dismiss(t.id); handleDelete(p._id); }}
-                                                                        >
-                                                                            YES
-                                                                        </button>
-                                                                    </span>
-                                                                ));
-                                                            }}
-                                                            className="p-2 text-zinc-700 hover:text-red-500 transition-colors"
-                                                        >
-                                                            <Trash2 size={16} />
-                                                        </button>
+                                                        <button onClick={() => { setPayParticipant(p); setShowPaymentModal(true); }} className="px-6 py-2 bg-red-600 text-white font-black text-[10px] rounded-md hover:bg-red-700 transition-all uppercase">PAY ₹{p.paymentAmount}</button>
+                                                        <button onClick={() => {
+                                                            toast((t) => (
+                                                                <span className="flex items-center gap-4">Delete {p.name}?
+                                                                    <button className="bg-red-600 px-2 py-1 rounded text-[8px] font-bold" onClick={() => { toast.dismiss(t.id); handleDelete(p._id); }}>YES</button>
+                                                                </span>
+                                                            ));
+                                                        }} className="p-2 text-zinc-700 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                                                     </div>
                                                 )}
                                             </div>
@@ -428,58 +402,59 @@ export default function DashboardPage() {
                     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeForm} className="absolute inset-0 bg-black/95 backdrop-blur-md" />
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#050505] border border-red-600/30 rounded-2xl p-8 w-full max-w-lg shadow-[0_0_50px_rgba(220,38,38,0.1)]">
-                            <div className="flex justify-between items-center mb-8">
+                            <div className="flex justify-between items-center mb-6">
                                 <div>
-                                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">
-                                        {isEditSwap ? "SWAP" : "ADD"} <span className="text-red-600">EVENT_</span>
-                                    </h2>
-                                    <p className="text-zinc-500 text-[10px] font-mono mt-1">
-                                        {editingId ? "Updating Existing Roster" : "New Personnel Registry"}
-                                    </p>
+                                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">{isEditSwap ? "SWAP" : "ADD"} <span className="text-red-600">EVENT_</span></h2>
+                                    <p className="text-zinc-500 text-[10px] font-mono mt-1">{editingId ? "Updating Existing Roster" : "New Personnel Registry"}</p>
                                 </div>
                                 <button onClick={closeForm} className="p-2 hover:bg-zinc-900 rounded-full transition-colors"><X size={20} className="text-zinc-600 hover:text-white" /></button>
                             </div>
+
+                            {/* Restriction Info */}
+                            {editingId && (
+                                <div className="mb-6 p-3 bg-red-600/5 border border-red-600/20 rounded-lg flex items-start gap-3">
+                                    <AlertCircle size={16} className="text-red-600 mt-0.5" />
+                                    <p className="text-[10px] leading-relaxed text-zinc-400 font-mono uppercase tracking-tighter">
+                                        Sector Restricted to <span className="text-red-500">{allowedSectors.join(" & ")}</span> based on existing entry.
+                                    </p>
+                                </div>
+                            )}
 
                             <form onSubmit={handleFormSubmit} className="space-y-5">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Identity_Name</label>
-                                        <input required placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            disabled={!!editingId}
-                                            className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors disabled:opacity-50" />
+                                        <input required placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} disabled={!!editingId}
+                                            className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 disabled:opacity-50" />
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Dept_No</label>
-                                        <input required placeholder="DNO" value={formData.dno} onChange={e => setFormData({ ...formData, dno: e.target.value })}
-                                            disabled={!!editingId}
-                                            className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors disabled:opacity-50" />
+                                        <input required placeholder="DNO" value={formData.dno} onChange={e => setFormData({ ...formData, dno: e.target.value })} disabled={!!editingId}
+                                            className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 disabled:opacity-50" />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
                                     <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Comm_Link (Email)</label>
-                                    <input required type="email" placeholder="Email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                        disabled={!!editingId}
-                                        className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors disabled:opacity-50" />
+                                    <input required type="email" placeholder="Email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} disabled={!!editingId}
+                                        className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 disabled:opacity-50" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Sector</label>
-                                        <select required value={formData.eventType} onChange={e => setFormData({ ...formData, eventType: e.target.value as any, eventName: "" })} className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600">
+                                        <select required value={formData.eventType} onChange={e => setFormData({ ...formData, eventType: e.target.value as any, eventName: "" })}
+                                            className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 text-xs">
                                             <option value="">Select_Sector</option>
-                                            <option value="TECHNICAL">TECHNICAL</option>
-                                            <option value="NON-TECHNICAL">NON-TECHNICAL</option>
-                                            <option value="CULTURALS">CULTURALS</option>
+                                            {allowedSectors.map(s => <option key={s} value={s}>{s}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Operation</label>
-                                        <select required value={formData.eventName} onChange={e => setFormData({ ...formData, eventName: e.target.value })} disabled={!formData.eventType} className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 disabled:opacity-50">
+                                        <select required value={formData.eventName} onChange={e => setFormData({ ...formData, eventName: e.target.value })} disabled={!formData.eventType}
+                                            className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 text-xs disabled:opacity-30">
                                             <option value="">Select_Task</option>
-                                            {events.filter(ev => ev.eventType === formData.eventType).map(ev => (
-                                                <option key={ev._id} value={ev.eventName}>{ev.eventName}</option>
-                                            ))}
+                                            {filteredEventOptions.map(ev => <option key={ev._id} value={ev.eventName}>{ev.eventName}</option>)}
                                         </select>
                                     </div>
                                 </div>
@@ -493,63 +468,21 @@ export default function DashboardPage() {
                 )}
             </AnimatePresence>
 
-            {/* ... Payment Modal ... */}
             {/* PAYMENT MODAL */}
             <AnimatePresence>
                 {showPaymentModal && payParticipant && (
                     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-                        {/* Backdrop */}
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setShowPaymentModal(false)}
-                            className="absolute inset-0 bg-black/98 backdrop-blur-xl"
-                        />
-
-                        {/* Modal Content */}
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="relative bg-[#050505] border border-red-600/20 rounded-3xl p-8 w-full max-w-sm text-center overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.15)]"
-                        >
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-red-600/10 blur-[80px] rounded-full" />
-
-                            <h2 className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">
-                                SECURE <span className="text-red-600">PAYMENT_</span>
-                            </h2>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowPaymentModal(false)} className="absolute inset-0 bg-black/98 backdrop-blur-xl" />
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="relative bg-[#050505] border border-red-600/20 rounded-3xl p-8 w-full max-w-sm text-center shadow-[0_0_50px_rgba(220,38,38,0.15)]">
+                            <h2 className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">SECURE <span className="text-red-600">PAYMENT_</span></h2>
                             <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-6">Encrypted_Transaction_Channel</p>
-
-                            {/* THE QR GENERATOR */}
-                            <div className="bg-white p-4 rounded-2xl inline-block mb-6 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
-                                <PaymentQR
-                                    teamId={user?.teamId || "UNKNOWN"}
-                                    email={payParticipant.email}
-                                    amount={payParticipant.paymentAmount}
-                                />
-                            </div>
-
+                            <div className="bg-white p-4 rounded-2xl inline-block mb-6"><PaymentQR teamId={user?.teamId || "UNKNOWN"} email={payParticipant.email} amount={payParticipant.paymentAmount} /></div>
                             <div className="space-y-1 mb-8">
                                 <p className="text-3xl font-black text-white tracking-tighter">₹{payParticipant.paymentAmount}</p>
-                                <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest">Amount_Payable_For: {payParticipant.name}</p>
+                                <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest">Payable For: {payParticipant.name}</p>
                             </div>
-
-                            {/* MOBILE UPI DEEP LINK */}
-                            <a
-                                href={`upi://pay?pa=YOUR_UPI_ID@okaxis&pn=EVENT_NAME&am=${payParticipant.paymentAmount}&tn=REG_${user?.teamId}_${payParticipant.name.replace(/\s/g, '')}&cu=INR`}
-                                onClick={() => toast.success("Redirecting to UPI apps...")}
-                                className="w-full py-4 mb-3 bg-white text-black font-black uppercase text-[10px] rounded-2xl flex items-center justify-center gap-2 tracking-[0.2em] hover:bg-zinc-200 transition-colors"
-                            >
-                                <Zap size={14} fill="black" /> Open UPI Apps
-                            </a>
-
-                            <button
-                                onClick={() => setShowPaymentModal(false)}
-                                className="w-full py-4 bg-zinc-900 text-zinc-400 hover:text-white font-black uppercase text-[10px] rounded-2xl border border-zinc-800 tracking-widest transition-all"
-                            >
-                                DISMISS_VOID
-                            </button>
+                            <a href={`upi://pay?pa=YOUR_UPI_ID@okaxis&pn=EVENT&am=${payParticipant.paymentAmount}&tn=REG_${user?.teamId}`} className="w-full py-4 mb-3 bg-white text-black font-black uppercase text-[10px] rounded-2xl flex items-center justify-center gap-2 hover:bg-zinc-200"><Zap size={14} fill="black" /> Open UPI Apps</a>
+                            <button onClick={() => setShowPaymentModal(false)} className="w-full py-4 bg-zinc-900 text-zinc-400 font-black uppercase text-[10px] rounded-2xl border border-zinc-800">DISMISS_VOID</button>
                         </motion.div>
                     </div>
                 )}
