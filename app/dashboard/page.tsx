@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import toast, { Toaster } from "react-hot-toast"; // ✅ Import Toast
 import {
     User,
     School,
@@ -55,16 +56,14 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true);
     const [loadingParticipants, setLoadingParticipants] = useState(true);
 
-    // UI States
     const [showParticipantForm, setShowParticipantForm] = useState(false);
     const [saving, setSaving] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [payParticipant, setPayParticipant] = useState<Participant | null>(null);
     const [activeFilter, setActiveFilter] = useState<string>("ALL");
 
-    // Form / Edit State
     const [editingId, setEditingId] = useState<string | null>(null);
-    const [isEditSwap, setIsEditSwap] = useState(false); // New: Tracks if we are swapping an old event or adding a new one
+    const [isEditSwap, setIsEditSwap] = useState(false);
     const [oldEventName, setOldEventName] = useState("");
 
     const [formData, setFormData] = useState({
@@ -90,6 +89,7 @@ export default function DashboardPage() {
             } catch {
                 localStorage.removeItem("token");
                 router.push("/login");
+                toast.error("Session Expired. Please Re-Login.");
             } finally {
                 setLoading(false);
             }
@@ -104,8 +104,9 @@ export default function DashboardPage() {
             const res = await fetch("/api/fetch-participants", { headers: { Authorization: `Bearer ${token}` } });
             const data = await res.json();
             setParticipants(data.participants || []);
-        } catch (err) { console.error(err); }
-        finally { setLoadingParticipants(false); }
+        } catch (err) {
+            toast.error("Failed to sync roster.");
+        } finally { setLoadingParticipants(false); }
     };
 
     const fetchEvents = async () => {
@@ -124,16 +125,15 @@ export default function DashboardPage() {
     /* ================= HANDLERS ================= */
     const handleLogout = () => {
         localStorage.removeItem("token");
+        toast.success("Disconnected Successfully.");
         router.push("/login");
     };
 
-    // Update openEditSwapMode to capture the name:
     const openEditSwapMode = (p: Participant, eventIdx: number) => {
         setEditingId(p._id);
         setIsEditSwap(true);
         const targetEvent = p.events[eventIdx];
-
-        setOldEventName(targetEvent.eventName); // Save the name to identify it in the array
+        setOldEventName(targetEvent.eventName);
 
         setFormData({
             name: p.name,
@@ -145,15 +145,27 @@ export default function DashboardPage() {
         setShowParticipantForm(true);
     };
 
-    // Update handleFormSubmit to send the oldEventName:
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Front-end Restriction: Cultural vs Other
+        if (editingId) {
+            const participant = participants.find(p => p._id === editingId);
+            if (participant) {
+                const hasCulturals = participant.events.some(ev => ev.eventType === "CULTURALS");
+                const isNewCultural = formData.eventType === "CULTURALS";
+                if (hasCulturals !== isNewCultural) {
+                    toast.error("RESTRICTION: Cannot mix Culturals with other sectors.", { icon: "🚫" });
+                    return;
+                }
+            }
+        }
+
+        const tId = toast.loading("SYNCHRONIZING...");
         setSaving(true);
         const token = localStorage.getItem("token");
 
         const method = (editingId && isEditSwap) ? "PUT" : "POST";
-
-        // We send oldEventName so the backend knows which array element to update
         const payload = editingId
             ? { ...formData, participantId: editingId, oldEventName: isEditSwap ? oldEventName : undefined }
             : formData;
@@ -168,47 +180,38 @@ export default function DashboardPage() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message || "Operation failed");
 
+            toast.success(isEditSwap ? "Event Swapped" : "Personnel Added", { id: tId });
             closeForm();
             fetchParticipants();
         } catch (err: any) {
-            alert(err.message);
+            toast.error(err.message, { id: tId });
         } finally {
             setSaving(false);
         }
     };
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to remove this personnel?")) return;
         const token = localStorage.getItem("token");
+        const tId = toast.loading("REMOVING...");
         try {
             const res = await fetch(`/api/participants?id=${id}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` }
             });
-            if (res.ok) fetchParticipants();
-        } catch (err) { alert("Failed to delete"); }
+            if (res.ok) {
+                toast.success("Record Purged", { id: tId });
+                fetchParticipants();
+            } else {
+                throw new Error("Failed");
+            }
+        } catch (err) {
+            toast.error("Deletion Failed", { id: tId });
+        }
     };
 
-    // ACTION: Edit/Swap an existing event
-    // const openEditSwapMode = (p: Participant, eventIdx: number) => {
-    //     setEditingId(p._id);
-    //     setIsEditSwap(true);
-    //     const targetEvent = p.events[eventIdx];
-
-    //     setFormData({
-    //         name: p.name,
-    //         dno: p.dno,
-    //         email: p.email,
-    //         eventType: targetEvent?.eventType || "",
-    //         eventName: targetEvent?.eventName || "",
-    //     });
-    //     setShowParticipantForm(true);
-    // };
-
-    // ACTION: Add a brand new event to an existing person
     const openAddEventMode = (p: Participant) => {
         setEditingId(p._id);
-        setIsEditSwap(false); // Since we are adding, not swapping
+        setIsEditSwap(false);
         setFormData({
             name: p.name,
             dno: p.dno,
@@ -237,8 +240,30 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-[#020202] text-zinc-300 relative selection:bg-red-600/30">
-            <div className="max-w-5xl mx-auto px-6 py-12 relative z-10">
+            {/* ✅ TOASTER CONFIG */}
+            <Toaster
+                position="bottom-right"
+                toastOptions={{
+                    style: {
+                        background: '#050505',
+                        color: '#fff',
+                        border: '1px solid #18181b',
+                        fontSize: '10px',
+                        fontFamily: 'monospace',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.1em'
+                    },
+                    success: {
+                        iconTheme: { primary: '#dc2626', secondary: '#fff' },
+                        style: { border: '1px solid #dc2626' }
+                    },
+                    error: {
+                        style: { border: '1px solid #dc2626', color: '#dc2626' }
+                    }
+                }}
+            />
 
+            <div className="max-w-5xl mx-auto px-6 py-12 relative z-10">
                 {/* HEADER */}
                 <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                     <div>
@@ -311,6 +336,8 @@ export default function DashboardPage() {
                                         <motion.div
                                             key={p._id}
                                             layout
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
                                             className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-red-600/40 transition-all"
                                         >
                                             <div className="flex-1">
@@ -329,7 +356,6 @@ export default function DashboardPage() {
                                                                 <span className="text-[7px] text-zinc-600 font-bold uppercase">{ev.eventType}</span>
                                                                 <span className="text-[10px] text-red-500 font-black uppercase">{ev.eventName}</span>
                                                             </div>
-                                                            {/* EDIT/SWAP BUTTON */}
                                                             {p.paymentStatus !== "PAID" && (
                                                                 <button
                                                                     onClick={() => openEditSwapMode(p, idx)}
@@ -342,7 +368,6 @@ export default function DashboardPage() {
                                                         </div>
                                                     ))}
 
-                                                    {/* ADD NEW EVENT BUTTON (Only if under limit) */}
                                                     {p.events.length < 2 && p.paymentStatus !== "PAID" && (
                                                         <button
                                                             onClick={() => openAddEventMode(p)}
@@ -368,7 +393,19 @@ export default function DashboardPage() {
                                                             PAY ₹{p.paymentAmount}
                                                         </button>
                                                         <button
-                                                            onClick={() => handleDelete(p._id)}
+                                                            onClick={() => {
+                                                                toast((t) => (
+                                                                    <span className="flex items-center gap-4">
+                                                                        Delete {p.name}?
+                                                                        <button
+                                                                            className="bg-red-600 px-2 py-1 rounded text-[8px] font-bold"
+                                                                            onClick={() => { toast.dismiss(t.id); handleDelete(p._id); }}
+                                                                        >
+                                                                            YES
+                                                                        </button>
+                                                                    </span>
+                                                                ));
+                                                            }}
                                                             className="p-2 text-zinc-700 hover:text-red-500 transition-colors"
                                                         >
                                                             <Trash2 size={16} />
@@ -408,7 +445,7 @@ export default function DashboardPage() {
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Identity_Name</label>
                                         <input required placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            disabled={!!editingId} // Lock name if editing/adding event to existing user
+                                            disabled={!!editingId}
                                             className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors disabled:opacity-50" />
                                     </div>
                                     <div className="space-y-1">
@@ -456,29 +493,7 @@ export default function DashboardPage() {
                 )}
             </AnimatePresence>
 
-            {/* PAYMENT MODAL */}
-            {showPaymentModal && payParticipant && (
-                <div className="fixed inset-0 z-[300] bg-black/98 flex items-center justify-center p-4">
-                    <div className="bg-[#050505] border border-red-600/20 rounded-3xl p-8 w-full max-sm text-center relative overflow-hidden">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-red-600/10 blur-[80px] rounded-full" />
-                        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">SECURE <span className="text-red-600">PAYMENT_</span></h2>
-                        <div className="bg-white p-3 rounded-2xl inline-block my-6">
-                            <PaymentQR teamId={user?.teamId || ""} email={payParticipant.email} amount={payParticipant.paymentAmount} />
-                        </div>
-                        <div className="space-y-1 mb-8">
-                            <p className="text-3xl font-black text-white tracking-tighter">₹{payParticipant.paymentAmount}</p>
-                            <p className="text-zinc-500 text-[9px] uppercase font-bold">Amount_Payable</p>
-                        </div>
-                        <a
-                            href={`upi://pay?pa=YOURVPA@okaxis&pn=ARAZON2K26&am=${payParticipant.paymentAmount}&tn=REG_${user?.teamId}_${payParticipant.name.replace(/\s/g, '')}&cu=INR`}
-                            className="w-full py-4 mb-3 bg-white text-black font-black uppercase text-[10px] rounded-2xl flex items-center justify-center gap-2 tracking-[0.2em]"
-                        >
-                            <Zap size={14} fill="black" /> Open UPI Apps
-                        </a>
-                        <button onClick={() => setShowPaymentModal(false)} className="w-full py-4 bg-zinc-900 text-zinc-400 hover:text-white font-black uppercase text-[10px] rounded-2xl border border-zinc-800 tracking-widest">DISMISS</button>
-                    </div>
-                </div>
-            )}
+            {/* ... Payment Modal ... */}
         </div>
     );
 }

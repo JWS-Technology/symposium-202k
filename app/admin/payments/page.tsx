@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import toast, { Toaster } from "react-hot-toast"; // ✅ Added Toaster
 import {
     ShieldCheck, Search, CircleDollarSign, Users, Clock,
     CheckCircle2, Loader2, Fingerprint, Zap
@@ -36,62 +37,62 @@ export default function AdminPaymentsPage() {
         })
             .then(res => res.json())
             .then(data => setParticipants(data.participants || []))
-            .catch(err => console.error("Initial Fetch error:", err))
+            .catch(err => {
+                console.error("Fetch error:", err);
+                toast.error("DATABASE_SYNC_FAILED");
+            })
             .finally(() => setLoading(false));
     }, [router]);
 
     const verifyPayment = async (id: string) => {
         const token = localStorage.getItem("adminToken");
         if (!token) {
-            console.error("❌ Auth Error: No admin token found in localStorage");
+            toast.error("UNAUTHORIZED_ACCESS_DENIED");
             return;
         }
 
-        console.log(`🚀 TRIGGER: Starting verification for Participant ID: ${id}`);
         setVerifyingId(id);
 
+        // Use a toast promise for a professional "Hacker" loading feel
+        const verificationPromise = fetch("/api/admin/verify-payment", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ participantId: id }),
+        }).then(async (res) => {
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.message || "Verification Failed");
+
+            // Update local state on success
+            setParticipants(prev => prev.map(p => p._id === id ? { ...p, paymentStatus: "PAID" } : p));
+            return data.message || "PAYMENT_ENCRYPTED_AND_VERIFIED";
+        });
+
+        toast.promise(verificationPromise, {
+            loading: 'INITIATING_VERIFICATION...',
+            success: (msg) => msg,
+            error: (err) => err.message,
+        });
+
         try {
-            const res = await fetch("/api/admin/verify-payment", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ participantId: id }),
-            });
-
-            console.log(`📡 RESPONSE STATUS: ${res.status} ${res.statusText}`);
-
-            // Safety check: if backend crashes, it might not return JSON
-            const contentType = res.headers.get("content-type");
-            let data;
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                data = await res.json();
-            } else {
-                const text = await res.text();
-                console.error("❌ RAW BACKEND ERROR (Non-JSON):", text);
-                throw new Error("Backend returned a non-JSON response. Check server terminal.");
-            }
-
-            if (res.ok) {
-                console.log("✅ SUCCESS: Payment updated and email dispatched.");
-                setParticipants(prev => prev.map(p => p._id === id ? { ...p, paymentStatus: "PAID" } : p));
-                alert(`SUCCESS: ${data.message}`);
-            } else {
-                console.error("⚠️ BACKEND LOGIC ERROR:", data);
-                alert(`FAILED: ${data.message || "Unknown Error"}`);
-            }
-
-        } catch (err: any) {
-            console.error("🛑 FATAL CONNECTION ERROR:", err);
-            alert(`SYSTEM ERROR: ${err.message}`);
+            await verificationPromise;
+        } catch (err) {
+            console.error("Verification error:", err);
         } finally {
             setVerifyingId(null);
-            console.log(`🏁 FINISHED: Verification attempt for ${id} ended.`);
         }
     };
 
-    // ... stats useMemo (Keep your existing stats logic)
+    // Stats calculation
+    const stats = useMemo(() => ({
+        total: participants.length,
+        paid: participants.filter(p => p.paymentStatus === "PAID").length,
+        pending: participants.filter(p => p.paymentStatus === "PENDING").length,
+        revenue: participants.filter(p => p.paymentStatus === "PAID").reduce((acc, curr) => acc + curr.paymentAmount, 0)
+    }), [participants]);
+
     const filteredParticipants = useMemo(() => {
         return participants.filter(p =>
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -99,13 +100,6 @@ export default function AdminPaymentsPage() {
             p.email.toLowerCase().includes(searchTerm.toLowerCase())
         );
     }, [participants, searchTerm]);
-
-    const stats = useMemo(() => ({
-        total: participants.length,
-        paid: participants.filter(p => p.paymentStatus === "PAID").length,
-        pending: participants.filter(p => p.paymentStatus === "PENDING").length,
-        revenue: participants.filter(p => p.paymentStatus === "PAID").reduce((acc, curr) => acc + curr.paymentAmount, 0)
-    }), [participants]);
 
     if (loading) return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center font-mono">
@@ -116,7 +110,28 @@ export default function AdminPaymentsPage() {
 
     return (
         <div className="min-h-screen bg-[#020202] text-zinc-400 font-sans selection:bg-red-600/50 relative overflow-hidden">
-            {/* SPIDER THEME OVERLAYS */}
+            {/* ✅ GLOBAL TOASTER CONFIG */}
+            <Toaster
+                position="top-center" // As requested: Top
+                toastOptions={{
+                    className: 'font-mono text-[10px] tracking-[0.2em] uppercase',
+                    style: {
+                        borderRadius: '0px',
+                        background: '#050505',
+                        color: '#fff',
+                        border: '1px solid #27272a',
+                        padding: '12px 24px',
+                    },
+                    success: {
+                        style: { borderColor: '#dc2626' },
+                        iconTheme: { primary: '#dc2626', secondary: '#000' },
+                    },
+                    error: {
+                        style: { borderColor: '#ef4444', color: '#ef4444' },
+                    }
+                }}
+            />
+
             <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(220,38,38,0.12),transparent_70%)] pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-6 py-12 relative z-10">
