@@ -137,12 +137,12 @@ export default function Hero({ timeLeft }: HeroProps) {
 
               {/* CTA Buttons */}
               <div className="flex flex-col md:flex-row gap-4 md:gap-6 justify-center items-center">
-                <Link href="/events" className="w-full md:w-auto">
+                <Link href="/login" className="w-full md:w-auto">
                   <motion.button
                     whileHover={{ scale: 1.02 }}
                     className="w-full md:w-64 bg-red-600 text-white font-black py-3 md:py-4 uppercase italic skew-x-[-10deg] border-2 md:border-4 border-black shadow-[-4px_4px_0px_white] text-sm md:text-lg"
                   >
-                    Enter Portal
+                    Login
                   </motion.button>
                 </Link>
 
@@ -151,7 +151,7 @@ export default function Hero({ timeLeft }: HeroProps) {
                     whileHover={{ scale: 1.02 }}
                     className="w-full md:w-64 bg-cyan-500 text-black font-black py-3 md:py-4 uppercase italic skew-x-[-10deg] border-2 md:border-4 border-black shadow-[-4px_4px_0px_#ef4444] text-sm md:text-lg"
                   >
-                    Get Tickets
+                    Registeration
                   </motion.button>
                 </Link>
               </div>
