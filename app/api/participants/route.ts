@@ -156,3 +156,49 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: "Server error" }, { status: 500 });
   }
 }
+
+/* =========================
+   PUT: UPDATE/CHANGE EVENT (FULL VERSION)
+========================= */
+export async function PUT(req: Request) {
+  try {
+    await connect();
+    const { participantId, oldEventName, eventName, eventType } =
+      await req.json();
+
+    if (!participantId || !oldEventName) {
+      return NextResponse.json(
+        { message: "Missing required identifiers" },
+        { status: 400 },
+      );
+    }
+
+    const updated = await Participant.findOneAndUpdate(
+      {
+        _id: participantId,
+        "events.eventName": oldEventName,
+      },
+      {
+        $set: {
+          "events.$.eventName": eventName,
+          "events.$.eventType": eventType,
+        },
+      },
+      { new: true },
+    );
+
+    if (!updated) {
+      return NextResponse.json(
+        { message: "Target event not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      message: "Event updated successfully",
+      updated,
+    });
+  } catch (err: any) {
+    return NextResponse.json({ message: err.message }, { status: 500 });
+  }
+}

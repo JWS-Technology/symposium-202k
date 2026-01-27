@@ -1,6 +1,6 @@
 "use client";
 
-import { JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal, useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -12,11 +12,12 @@ import {
     ShieldAlert,
     Plus,
     CheckCircle2,
-    Calendar,
     X,
     Filter,
     Layers,
-    Zap
+    Zap,
+    Trash2,
+    Edit3
 } from "lucide-react";
 import PaymentQR from "@/components/PaymentQR";
 
@@ -27,7 +28,6 @@ interface UserData {
     email: string;
     phone: string;
     college: string;
-    createdAt: string;
 }
 
 interface Participant {
@@ -43,8 +43,6 @@ interface Participant {
 interface EventItem {
     _id: string;
     eventName: string;
-    minPlayers: number;
-    maxPlayers: number;
     eventType: "TECHNICAL" | "NON-TECHNICAL" | "CULTURALS";
 }
 
@@ -56,13 +54,18 @@ export default function DashboardPage() {
     const [events, setEvents] = useState<EventItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [loadingParticipants, setLoadingParticipants] = useState(true);
+
+    // UI States
     const [showParticipantForm, setShowParticipantForm] = useState(false);
     const [saving, setSaving] = useState(false);
     const [showPaymentModal, setShowPaymentModal] = useState(false);
-    const [payParticipant, setPayParticipant] = useState<any>(null);
-
-    // Filter State
+    const [payParticipant, setPayParticipant] = useState<Participant | null>(null);
     const [activeFilter, setActiveFilter] = useState<string>("ALL");
+
+    // Form / Edit State
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [isEditSwap, setIsEditSwap] = useState(false); // New: Tracks if we are swapping an old event or adding a new one
+    const [oldEventName, setOldEventName] = useState("");
 
     const [formData, setFormData] = useState({
         name: "",
@@ -83,8 +86,7 @@ export default function DashboardPage() {
                 if (!userRes.ok) throw new Error();
                 const userData = await userRes.json();
                 setUser(userData.user);
-                await fetchParticipants();
-                await fetchEvents();
+                await Promise.all([fetchParticipants(), fetchEvents()]);
             } catch {
                 localStorage.removeItem("token");
                 router.push("/login");
@@ -114,12 +116,9 @@ export default function DashboardPage() {
         } catch (err) { console.error(err); }
     };
 
-    /* ================= FILTER LOGIC ================= */
     const filteredParticipants = useMemo(() => {
         if (activeFilter === "ALL") return participants;
-        return participants.filter(p =>
-            p.events.some(ev => ev.eventType === activeFilter)
-        );
+        return participants.filter(p => p.events.some(ev => ev.eventType === activeFilter));
     }, [participants, activeFilter]);
 
     /* ================= HANDLERS ================= */
@@ -128,23 +127,48 @@ export default function DashboardPage() {
         router.push("/login");
     };
 
-    const handleAddParticipant = async (e: React.FormEvent) => {
+    // Update openEditSwapMode to capture the name:
+    const openEditSwapMode = (p: Participant, eventIdx: number) => {
+        setEditingId(p._id);
+        setIsEditSwap(true);
+        const targetEvent = p.events[eventIdx];
+
+        setOldEventName(targetEvent.eventName); // Save the name to identify it in the array
+
+        setFormData({
+            name: p.name,
+            dno: p.dno,
+            email: p.email,
+            eventType: targetEvent?.eventType || "",
+            eventName: targetEvent?.eventName || "",
+        });
+        setShowParticipantForm(true);
+    };
+
+    // Update handleFormSubmit to send the oldEventName:
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true);
         const token = localStorage.getItem("token");
 
+        const method = (editingId && isEditSwap) ? "PUT" : "POST";
+
+        // We send oldEventName so the backend knows which array element to update
+        const payload = editingId
+            ? { ...formData, participantId: editingId, oldEventName: isEditSwap ? oldEventName : undefined }
+            : formData;
+
         try {
             const res = await fetch("/api/participants", {
-                method: "POST",
+                method,
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify(formData),
+                body: JSON.stringify(payload),
             });
 
             const data = await res.json();
-            if (!res.ok) throw new Error(data.message || "Failed to register");
+            if (!res.ok) throw new Error(data.message || "Operation failed");
 
-            setFormData({ name: "", dno: "", email: "", eventName: "", eventType: "" });
-            setShowParticipantForm(false);
+            closeForm();
             fetchParticipants();
         } catch (err: any) {
             alert(err.message);
@@ -153,15 +177,53 @@ export default function DashboardPage() {
         }
     };
 
-    const openAddEventForExisting = (p: Participant) => {
+    const handleDelete = async (id: string) => {
+        if (!confirm("Are you sure you want to remove this personnel?")) return;
+        const token = localStorage.getItem("token");
+        try {
+            const res = await fetch(`/api/participants?id=${id}`, {
+                method: "DELETE",
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) fetchParticipants();
+        } catch (err) { alert("Failed to delete"); }
+    };
+
+    // ACTION: Edit/Swap an existing event
+    // const openEditSwapMode = (p: Participant, eventIdx: number) => {
+    //     setEditingId(p._id);
+    //     setIsEditSwap(true);
+    //     const targetEvent = p.events[eventIdx];
+
+    //     setFormData({
+    //         name: p.name,
+    //         dno: p.dno,
+    //         email: p.email,
+    //         eventType: targetEvent?.eventType || "",
+    //         eventName: targetEvent?.eventName || "",
+    //     });
+    //     setShowParticipantForm(true);
+    // };
+
+    // ACTION: Add a brand new event to an existing person
+    const openAddEventMode = (p: Participant) => {
+        setEditingId(p._id);
+        setIsEditSwap(false); // Since we are adding, not swapping
         setFormData({
             name: p.name,
             dno: p.dno,
             email: p.email,
-            eventName: "",
             eventType: "",
+            eventName: "",
         });
         setShowParticipantForm(true);
+    };
+
+    const closeForm = () => {
+        setShowParticipantForm(false);
+        setEditingId(null);
+        setIsEditSwap(false);
+        setFormData({ name: "", dno: "", email: "", eventName: "", eventType: "" });
     };
 
     if (loading) return (
@@ -191,10 +253,7 @@ export default function DashboardPage() {
 
                     <div className="flex items-center gap-3">
                         <button
-                            onClick={() => {
-                                setFormData({ name: "", dno: "", email: "", eventName: "", eventType: "" });
-                                setShowParticipantForm(true);
-                            }}
+                            onClick={() => { closeForm(); setShowParticipantForm(true); }}
                             className="px-6 py-3 bg-red-600 text-white font-bold uppercase text-[10px] tracking-widest skew-x-[-12deg] transition-all hover:bg-red-700 hover:scale-105 active:scale-95 shadow-[0_0_15px_rgba(220,38,38,0.3)]"
                         >
                             <span className="inline-block skew-x-[12deg] flex items-center gap-2">
@@ -207,7 +266,7 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
-                {/* TEAM INFO */}
+                {/* TEAM INFO BOXES */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
                     <div className="md:col-span-1 bg-zinc-900/30 border border-zinc-800 p-6 rounded-2xl flex flex-col items-center justify-center">
                         <User className="text-red-600 mb-3" size={40} />
@@ -221,28 +280,18 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* CREW ROSTER WITH FILTERS */}
+                {/* ROSTER */}
                 <div className="bg-[#050505] border border-zinc-900 rounded-2xl shadow-2xl overflow-hidden mb-20">
-                    <div className="px-6 py-6 border-b border-zinc-900 space-y-4">
-                        <div className="flex justify-between items-center">
-                            <h3 className="text-white font-black uppercase tracking-widest text-xs flex items-center gap-2">
-                                <Layers size={14} className="text-red-600" /> Crew Roster
-                            </h3>
-                            <div className="flex items-center gap-2 text-[10px] font-mono text-zinc-500">
-                                <Filter size={10} /> Filtered_By: <span className="text-red-500">{activeFilter}</span>
-                            </div>
-                        </div>
-
-                        {/* CATEGORY TABS */}
-                        <div className="flex flex-wrap gap-2">
+                    <div className="px-6 py-6 border-b border-zinc-900 flex justify-between items-center">
+                        <h3 className="text-white font-black uppercase tracking-widest text-xs flex items-center gap-2">
+                            <Layers size={14} className="text-red-600" /> Crew Roster
+                        </h3>
+                        <div className="flex gap-4">
                             {["ALL", "TECHNICAL", "NON-TECHNICAL", "CULTURALS"].map((type) => (
                                 <button
                                     key={type}
                                     onClick={() => setActiveFilter(type)}
-                                    className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all border ${activeFilter === type
-                                        ? "bg-red-600 border-red-600 text-white shadow-[0_0_10px_rgba(220,38,38,0.2)]"
-                                        : "bg-zinc-900 border-zinc-800 text-zinc-500 hover:border-zinc-700"
-                                        }`}
+                                    className={`text-[10px] font-black uppercase tracking-widest transition-all ${activeFilter === type ? "text-red-500" : "text-zinc-600 hover:text-zinc-400"}`}
                                 >
                                     {type}
                                 </button>
@@ -253,52 +302,51 @@ export default function DashboardPage() {
                     <div className="p-6">
                         <AnimatePresence mode="wait">
                             {loadingParticipants ? (
-                                <motion.div
-                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                    className="py-12 text-center text-zinc-600 font-mono text-xs animate-pulse"
-                                >
-                                    SYNCHRONIZING_PERSONNEL_DATA...
-                                </motion.div>
+                                <p className="py-12 text-center text-zinc-600 font-mono text-xs animate-pulse">SYNCHRONIZING...</p>
                             ) : filteredParticipants.length === 0 ? (
-                                <motion.div
-                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                    className="py-12 text-center border border-dashed border-zinc-900 rounded-xl"
-                                >
-                                    <p className="text-zinc-500 text-sm">No personnel found in <span className="text-red-500">{activeFilter}</span> sector.</p>
-                                </motion.div>
+                                <p className="py-12 text-center text-zinc-500 text-sm italic">No records found.</p>
                             ) : (
                                 <div className="grid grid-cols-1 gap-4">
                                     {filteredParticipants.map((p, i) => (
                                         <motion.div
                                             key={p._id}
                                             layout
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: i * 0.05 }}
-                                            className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-red-600/40 transition-all duration-300"
+                                            className="group flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 bg-zinc-950 border border-zinc-900 rounded-xl hover:border-red-600/40 transition-all"
                                         >
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-3 mb-1">
-                                                    <div className="w-8 h-8 rounded-full bg-red-600/10 flex items-center justify-center text-red-600 font-black text-xs">
-                                                        {i + 1}
-                                                    </div>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-8 h-8 rounded-full bg-red-600/10 flex items-center justify-center text-red-600 font-black text-xs">{i + 1}</div>
                                                     <div>
-                                                        <h4 className="text-white font-bold tracking-tight">{p.name}</h4>
+                                                        <h4 className="text-white font-bold">{p.name}</h4>
                                                         <p className="text-[10px] font-mono text-zinc-500 uppercase">{p.dno}</p>
                                                     </div>
                                                 </div>
 
                                                 <div className="mt-4 flex flex-wrap gap-2">
                                                     {p.events.map((ev, idx) => (
-                                                        <div key={idx} className="flex flex-col px-3 py-1 bg-black border border-zinc-800 rounded-md">
-                                                            <span className="text-[8px] text-zinc-500 font-bold uppercase tracking-tighter">{ev.eventType}</span>
-                                                            <span className="text-[10px] text-red-500 font-black uppercase tracking-widest leading-none mt-0.5">{ev.eventName}</span>
+                                                        <div key={idx} className="px-3 py-1 bg-black border border-zinc-800 rounded-md flex items-center gap-3 group/tag">
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[7px] text-zinc-600 font-bold uppercase">{ev.eventType}</span>
+                                                                <span className="text-[10px] text-red-500 font-black uppercase">{ev.eventName}</span>
+                                                            </div>
+                                                            {/* EDIT/SWAP BUTTON */}
+                                                            {p.paymentStatus !== "PAID" && (
+                                                                <button
+                                                                    onClick={() => openEditSwapMode(p, idx)}
+                                                                    className="text-zinc-600 hover:text-white transition-colors"
+                                                                    title="Swap Event"
+                                                                >
+                                                                    <Edit3 size={11} />
+                                                                </button>
+                                                            )}
                                                         </div>
                                                     ))}
-                                                    {p.events.length < 2 && (
+
+                                                    {/* ADD NEW EVENT BUTTON (Only if under limit) */}
+                                                    {p.events.length < 2 && p.paymentStatus !== "PAID" && (
                                                         <button
-                                                            onClick={() => openAddEventForExisting(p)}
-                                                            className="px-3 py-1 border border-dashed border-zinc-800 hover:border-red-600/50 text-zinc-600 hover:text-red-500 rounded-md text-[9px] font-black uppercase transition-all"
+                                                            onClick={() => openAddEventMode(p)}
+                                                            className="px-3 py-1 border border-dashed border-zinc-800 hover:border-red-600 text-zinc-600 hover:text-red-500 rounded-md text-[9px] font-black uppercase transition-all"
                                                         >
                                                             + ADD EVENT
                                                         </button>
@@ -306,20 +354,25 @@ export default function DashboardPage() {
                                                 </div>
                                             </div>
 
-                                            <div className="flex flex-col items-end gap-3 border-t md:border-t-0 border-zinc-900 pt-4 md:pt-0">
+                                            <div className="flex items-center gap-4">
                                                 {p.paymentStatus === "PAID" ? (
-                                                    <div className="flex items-center gap-2 px-4 py-2 bg-green-500/5 border border-green-500/20 rounded-lg text-green-500 text-[9px] font-black uppercase tracking-widest">
-                                                        <CheckCircle2 size={12} /> CLEARANCE: ACTIVE
+                                                    <div className="px-4 py-2 bg-green-500/5 border border-green-500/20 rounded-lg text-green-500 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+                                                        <CheckCircle2 size={12} /> VERIFIED
                                                     </div>
                                                 ) : (
-                                                    <div className="flex flex-col items-end gap-2">
+                                                    <div className="flex items-center gap-2">
                                                         <button
                                                             onClick={() => { setPayParticipant(p); setShowPaymentModal(true); }}
                                                             className="px-6 py-2 bg-red-600 text-white font-black text-[10px] rounded-md hover:bg-red-700 transition-all uppercase tracking-widest"
                                                         >
                                                             PAY ₹{p.paymentAmount}
                                                         </button>
-                                                        <span className="text-[8px] font-mono text-zinc-600 animate-pulse">AWAITING_PAYMENT_HASH</span>
+                                                        <button
+                                                            onClick={() => handleDelete(p._id)}
+                                                            className="p-2 text-zinc-700 hover:text-red-500 transition-colors"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
                                                     </div>
                                                 )}
                                             </div>
@@ -332,41 +385,51 @@ export default function DashboardPage() {
                 </div>
             </div>
 
-            {/* MODALS REMAINDER (UNCHANGED BUT UPDATED STYLING) */}
+            {/* FORM MODAL */}
             <AnimatePresence>
                 {showParticipantForm && (
                     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowParticipantForm(false)} className="absolute inset-0 bg-black/95 backdrop-blur-md" />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeForm} className="absolute inset-0 bg-black/95 backdrop-blur-md" />
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#050505] border border-red-600/30 rounded-2xl p-8 w-full max-w-lg shadow-[0_0_50px_rgba(220,38,38,0.1)]">
                             <div className="flex justify-between items-center mb-8">
                                 <div>
-                                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">DATA <span className="text-red-600">INPUT_</span></h2>
-                                    <p className="text-zinc-500 text-[10px] font-mono mt-1">Personnel_Registry_V2.0</p>
+                                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">
+                                        {isEditSwap ? "SWAP" : "ADD"} <span className="text-red-600">EVENT_</span>
+                                    </h2>
+                                    <p className="text-zinc-500 text-[10px] font-mono mt-1">
+                                        {editingId ? "Updating Existing Roster" : "New Personnel Registry"}
+                                    </p>
                                 </div>
-                                <button onClick={() => setShowParticipantForm(false)} className="p-2 hover:bg-zinc-900 rounded-full transition-colors"><X size={20} className="text-zinc-600 hover:text-white" /></button>
+                                <button onClick={closeForm} className="p-2 hover:bg-zinc-900 rounded-full transition-colors"><X size={20} className="text-zinc-600 hover:text-white" /></button>
                             </div>
 
-                            <form onSubmit={handleAddParticipant} className="space-y-5">
+                            <form onSubmit={handleFormSubmit} className="space-y-5">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Identity_Name</label>
-                                        <input required placeholder="eg. John Doe" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors" />
+                                        <input required placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                            disabled={!!editingId} // Lock name if editing/adding event to existing user
+                                            className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors disabled:opacity-50" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Department_No</label>
-                                        <input required placeholder="eg. 21-CS-001" value={formData.dno} onChange={e => setFormData({ ...formData, dno: e.target.value })} className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors" />
+                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Dept_No</label>
+                                        <input required placeholder="DNO" value={formData.dno} onChange={e => setFormData({ ...formData, dno: e.target.value })}
+                                            disabled={!!editingId}
+                                            className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors disabled:opacity-50" />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Comm_Address (Email)</label>
-                                    <input required type="email" placeholder="john@academy.edu" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors" />
+                                    <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Comm_Link (Email)</label>
+                                    <input required type="email" placeholder="Email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                        disabled={!!editingId}
+                                        className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 transition-colors disabled:opacity-50" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
                                         <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Sector</label>
-                                        <select required value={formData.eventType} onChange={e => setFormData({ ...formData, eventType: e.target.value, eventName: "" })} className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600">
+                                        <select required value={formData.eventType} onChange={e => setFormData({ ...formData, eventType: e.target.value as any, eventName: "" })} className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600">
                                             <option value="">Select_Sector</option>
                                             <option value="TECHNICAL">TECHNICAL</option>
                                             <option value="NON-TECHNICAL">NON-TECHNICAL</option>
@@ -384,8 +447,8 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
 
-                                <button type="submit" disabled={saving} className="w-full py-4 bg-red-600 text-white font-black uppercase text-xs rounded-xl hover:bg-red-700 transition-all disabled:opacity-50 tracking-[0.2em] shadow-[0_5px_15px_rgba(220,38,38,0.3)]">
-                                    {saving ? "UPLOADING_CREDENTIALS..." : "CONFIRM_REGISTRATION"}
+                                <button type="submit" disabled={saving} className="w-full py-4 bg-red-600 text-white font-black uppercase text-xs rounded-xl hover:bg-red-700 transition-all shadow-[0_5px_15px_rgba(220,38,38,0.3)]">
+                                    {saving ? "SYNCHRONIZING..." : isEditSwap ? "CONFIRM_SWAP" : "CONFIRM_REGISTRATION"}
                                 </button>
                             </form>
                         </motion.div>
@@ -393,48 +456,32 @@ export default function DashboardPage() {
                 )}
             </AnimatePresence>
 
-            {/* PAYMENT MODAL (UPDATED UI) */}
-            {/* PAYMENT MODAL (UPDATED WITH MOBILE DEEP LINK) */}
+            {/* PAYMENT MODAL */}
             {showPaymentModal && payParticipant && (
                 <div className="fixed inset-0 z-[300] bg-black/98 flex items-center justify-center p-4">
-                    <div className="bg-[#050505] border border-red-600/20 rounded-3xl p-8 w-full max-w-sm text-center relative overflow-hidden">
+                    <div className="bg-[#050505] border border-red-600/20 rounded-3xl p-8 w-full max-sm text-center relative overflow-hidden">
                         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-red-600/10 blur-[80px] rounded-full" />
-
-                        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">SECURE <span className="text-red-600">TRANSACTION_</span></h2>
-                        <p className="text-zinc-600 text-[10px] font-mono mb-6">Node_ID: {payParticipant._id.substring(0, 8)}</p>
-
-                        {/* QR Code for Desktop Users */}
-                        <div className="bg-white p-3 rounded-2xl inline-block mb-6 shadow-[0_0_30px_rgba(255,255,255,0.05)]">
+                        <h2 className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">SECURE <span className="text-red-600">PAYMENT_</span></h2>
+                        <div className="bg-white p-3 rounded-2xl inline-block my-6">
                             <PaymentQR teamId={user?.teamId || ""} email={payParticipant.email} amount={payParticipant.paymentAmount} />
                         </div>
-
-                        <div className="space-y-1 mb-6">
+                        <div className="space-y-1 mb-8">
                             <p className="text-3xl font-black text-white tracking-tighter">₹{payParticipant.paymentAmount}</p>
-                            <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest">Amount_Payable</p>
+                            <p className="text-zinc-500 text-[9px] uppercase font-bold">Amount_Payable</p>
                         </div>
-
-                        {/* NEW: MOBILE UPI REDIRECT BUTTON */}
                         <a
                             href={`upi://pay?pa=YOURVPA@okaxis&pn=ARAZON2K26&am=${payParticipant.paymentAmount}&tn=REG_${user?.teamId}_${payParticipant.name.replace(/\s/g, '')}&cu=INR`}
-                            className="w-full py-4 mb-3 bg-white text-black font-black uppercase text-[10px] rounded-2xl flex items-center justify-center gap-2 hover:bg-zinc-200 transition-all tracking-[0.2em]"
+                            className="w-full py-4 mb-3 bg-white text-black font-black uppercase text-[10px] rounded-2xl flex items-center justify-center gap-2 tracking-[0.2em]"
                         >
                             <Zap size={14} fill="black" /> Open UPI Apps
                         </a>
-
-                        <button
-                            onClick={() => { setShowPaymentModal(false); setPayParticipant(null); }}
-                            className="w-full py-4 bg-zinc-900 text-zinc-400 hover:text-white font-black uppercase text-[10px] rounded-2xl transition-all border border-zinc-800 hover:border-zinc-700 tracking-widest"
-                        >
-                            DISMISS_TERMINAL
-                        </button>
+                        <button onClick={() => setShowPaymentModal(false)} className="w-full py-4 bg-zinc-900 text-zinc-400 hover:text-white font-black uppercase text-[10px] rounded-2xl border border-zinc-800 tracking-widest">DISMISS</button>
                     </div>
                 </div>
             )}
         </div>
     );
 }
-
-/* ================= HELPER COMPONENTS ================= */
 
 function InfoBox({ label, value, icon }: { label: string; value: string; icon: React.ReactNode }) {
     return (
