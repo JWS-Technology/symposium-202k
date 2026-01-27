@@ -494,6 +494,66 @@ export default function DashboardPage() {
             </AnimatePresence>
 
             {/* ... Payment Modal ... */}
+            {/* PAYMENT MODAL */}
+            <AnimatePresence>
+                {showPaymentModal && payParticipant && (
+                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
+                        {/* Backdrop */}
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowPaymentModal(false)}
+                            className="absolute inset-0 bg-black/98 backdrop-blur-xl"
+                        />
+
+                        {/* Modal Content */}
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="relative bg-[#050505] border border-red-600/20 rounded-3xl p-8 w-full max-w-sm text-center overflow-hidden shadow-[0_0_50px_rgba(220,38,38,0.15)]"
+                        >
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 bg-red-600/10 blur-[80px] rounded-full" />
+
+                            <h2 className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">
+                                SECURE <span className="text-red-600">PAYMENT_</span>
+                            </h2>
+                            <p className="text-[9px] font-mono text-zinc-500 uppercase tracking-widest mb-6">Encrypted_Transaction_Channel</p>
+
+                            {/* THE QR GENERATOR */}
+                            <div className="bg-white p-4 rounded-2xl inline-block mb-6 shadow-[0_0_20px_rgba(255,255,255,0.05)]">
+                                <PaymentQR
+                                    teamId={user?.teamId || "UNKNOWN"}
+                                    email={payParticipant.email}
+                                    amount={payParticipant.paymentAmount}
+                                />
+                            </div>
+
+                            <div className="space-y-1 mb-8">
+                                <p className="text-3xl font-black text-white tracking-tighter">₹{payParticipant.paymentAmount}</p>
+                                <p className="text-zinc-500 text-[9px] uppercase font-bold tracking-widest">Amount_Payable_For: {payParticipant.name}</p>
+                            </div>
+
+                            {/* MOBILE UPI DEEP LINK */}
+                            <a
+                                href={`upi://pay?pa=YOUR_UPI_ID@okaxis&pn=EVENT_NAME&am=${payParticipant.paymentAmount}&tn=REG_${user?.teamId}_${payParticipant.name.replace(/\s/g, '')}&cu=INR`}
+                                onClick={() => toast.success("Redirecting to UPI apps...")}
+                                className="w-full py-4 mb-3 bg-white text-black font-black uppercase text-[10px] rounded-2xl flex items-center justify-center gap-2 tracking-[0.2em] hover:bg-zinc-200 transition-colors"
+                            >
+                                <Zap size={14} fill="black" /> Open UPI Apps
+                            </a>
+
+                            <button
+                                onClick={() => setShowPaymentModal(false)}
+                                className="w-full py-4 bg-zinc-900 text-zinc-400 hover:text-white font-black uppercase text-[10px] rounded-2xl border border-zinc-800 tracking-widest transition-all"
+                            >
+                                DISMISS_VOID
+                            </button>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
