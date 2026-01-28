@@ -351,6 +351,7 @@ export default function DashboardPage() {
                                                     <div>
                                                         <h4 className="text-white font-bold">{p.name}</h4>
                                                         <p className="text-[10px] font-mono text-zinc-500 uppercase">{p.dno}</p>
+                                                        <p className="text-[10px] font-mono text-zinc-500 uppercase">{p.email}</p>
                                                     </div>
                                                 </div>
                                                 <div className="mt-4 flex flex-wrap gap-2">
@@ -377,13 +378,7 @@ export default function DashboardPage() {
                                                 ) : (
                                                     <div className="flex items-center gap-2">
                                                         <button onClick={() => { setPayParticipant(p); setShowPaymentModal(true); }} className="px-6 py-2 bg-red-600 text-white font-black text-[10px] rounded-md hover:bg-red-700 transition-all uppercase">PAY ₹{p.paymentAmount}</button>
-                                                        <button onClick={() => {
-                                                            toast((t) => (
-                                                                <span className="flex items-center gap-4">Delete {p.name}?
-                                                                    <button className="bg-red-600 px-2 py-1 rounded text-[8px] font-bold" onClick={() => { toast.dismiss(t.id); handleDelete(p._id); }}>YES</button>
-                                                                </span>
-                                                            ));
-                                                        }} className="p-2 text-zinc-700 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+
                                                     </div>
                                                 )}
                                             </div>
