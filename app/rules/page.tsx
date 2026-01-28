@@ -1,254 +1,301 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import {
-    ShieldAlert,
-    Terminal,
-    Cpu,
-    Music,
-    Users,
-    Clock,
-    AlertTriangle,
-    FileText,
-    Layout,
-    Bug,
-    Mic2,
-    Trophy
+    ShieldAlert, Terminal, Cpu, Music, Users, Clock, AlertTriangle,
+    FileText, Layout, Bug, Mic2, Trophy, Zap, Radio
 } from 'lucide-react';
 
 export default function RulesPage() {
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
-
-    const itemVariants = {
-        hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1 }
-    };
+    const { scrollYProgress } = useScroll();
+    const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
 
     return (
-        <div className="min-h-screen bg-[#020202] text-zinc-300 py-12 px-4 relative overflow-hidden font-sans">
+        <div className="min-h-screen bg-[#020202] text-zinc-300 py-20 px-4 relative overflow-hidden font-sans selection:bg-red-600 selection:text-white">
 
-            {/* ANIMATED WEB BACKGROUND */}
-            <div className="absolute inset-0 pointer-events-none opacity-20">
-                <svg width="100%" height="100%" className="absolute inset-0">
-                    <pattern id="web-pattern" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
-                        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="red" strokeWidth="0.5" />
-                        <circle cx="0" cy="0" r="1" fill="red" />
+            {/* --- ADVANCED BACKGROUND ELEMENTS --- */}
+            <div className="fixed inset-0 pointer-events-none">
+                {/* Comic Halftone Dots */}
+                <div className="absolute inset-0 opacity-[0.03]"
+                    style={{ backgroundImage: `radial-gradient(#fff 1px, transparent 1px)`, backgroundSize: '20px 20px' }} />
+
+                {/* Moving Scanline */}
+                <motion.div
+                    animate={{ y: ["0%", "100%"] }}
+                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                    className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-red-600/20 to-transparent z-0"
+                />
+
+                {/* Cyber Web Grid */}
+                <svg width="100%" height="100%" className="absolute inset-0 opacity-10">
+                    <pattern id="cyber-grid" x="0" y="0" width="100" height="100" patternUnits="userSpaceOnUse">
+                        <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#ff0000" strokeWidth="0.5" />
+                        <path d="M 0 0 L 100 100" fill="none" stroke="#ff0000" strokeWidth="0.2" opacity="0.3" />
                     </pattern>
-                    <rect width="100%" height="100%" fill="url(#web-pattern)" />
+                    <rect width="100%" height="100%" fill="url(#cyber-grid)" />
                 </svg>
             </div>
 
-            <div className="max-w-6xl mx-auto relative z-10">
+            <div className="max-w-7xl mx-auto relative z-10">
 
-                {/* HEADER */}
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center mb-16"
+                {/* --- HEADER WITH GLITCH EFFECT --- */}
+                <motion.header
+                    style={{ opacity }}
+                    className="text-center mb-24 relative"
                 >
-                    <div className="flex justify-center items-center gap-2 mb-4">
-                        <div className="h-[2px] w-12 bg-red-600 hidden md:block" />
-                        <ShieldAlert className="text-red-600 animate-pulse" size={24} />
-                        <span className="text-red-600 font-mono tracking-[0.5em] text-[10px] uppercase">Official_Protocol_v2.6</span>
-                        <div className="h-[2px] w-12 bg-red-600 hidden md:block" />
+                    <motion.div
+                        initial={{ y: -50, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        className="inline-flex items-center gap-3 px-4 py-1 rounded-full border border-red-600/30 bg-red-600/5 mb-6"
+                    >
+                        <Radio className="text-red-600 animate-pulse" size={14} />
+                        <span className="text-red-600 font-mono tracking-[0.3em] text-[10px] uppercase font-bold">
+                            Incoming_Data_Stream_v2.6
+                        </span>
+                    </motion.div>
+
+                    <div className="relative inline-block">
+                        <h1 className="text-6xl md:text-9xl font-black italic text-white uppercase tracking-tighter leading-tight">
+                            SYSTEM <span className="text-red-600">RULES_</span>
+                        </h1>
+                        {/* Duplicate for Glitch shadow */}
+                        <motion.h1
+                            animate={{ x: [-2, 2, -1], opacity: [0.5, 0.2, 0.5] }}
+                            transition={{ repeat: Infinity, duration: 0.2 }}
+                            className="absolute inset-0 text-6xl md:text-9xl font-black italic text-cyan-400 uppercase tracking-tighter leading-tight mix-blend-screen opacity-30 pointer-events-none translate-x-1"
+                        >
+                            SYSTEM <span className="text-red-600">RULES_</span>
+                        </motion.h1>
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-black italic text-white uppercase tracking-tighter">
-                        RULES & <span className="text-red-600">REGULATIONS_</span>
-                    </h1>
-                </motion.div>
+                </motion.header>
 
-                <motion.div
-                    variants={containerVariants}
-                    initial="hidden"
-                    animate="visible"
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                >
-                    {/* GENERAL RULES */}
+                {/* --- MAIN CONTENT --- */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+                    {/* CORE DIRECTIVES */}
+                    <div className="lg:col-span-3">
+                        <CategoryHeader title="CORE_DIRECTIVES" icon={<ShieldAlert />} />
+                    </div>
+
                     <RuleCard
-                        title="General Rules"
-                        icon={<AlertTriangle className="text-white" />}
-                        color="border-red-600"
+                        title="General Protocol"
+                        icon={<AlertTriangle />}
+                        color="red"
+                        delay={0.1}
                         rules={[
-                            "Valid college ID mandatory",
-                            "Reporting time must be followed",
-                            "Organizers reserve rights to modify rules",
-                            "Only one team per department"
+                            "Valid Institutional ID is mandatory for entry.",
+                            "Strict adherence to reporting schedules.",
+                            "Command decision by organizers is final.",
+                            "Single team entry per department squad."
                         ]}
                     />
 
-                    {/* NON-TECHNICAL SECTOR */}
-                    <CategoryHeader title="NON-TECHNICAL SECTOR" />
+                    {/* SECTOR: NON-TECHNICAL */}
+                    <div className="lg:col-span-3 mt-12">
+                        <CategoryHeader title="SECTOR_01: NON-TECHNICAL" icon={<Zap />} />
+                    </div>
 
                     <RuleCard
                         title="Spider Sense (Quiz)"
                         icon={<Terminal />}
-                        teamSize="2 Members"
+                        teamSize="2 Units"
+                        delay={0.2}
                         rules={[
-                            "Prelims + Multiple rounds",
-                            "Mobile phones strictly prohibited",
-                            "Quiz master’s decision is final"
+                            "Multi-stage elimination protocols.",
+                            "External comms (mobiles) strictly jammed.",
+                            "Quiz Master holds absolute authority."
                         ]}
                     />
 
                     <RuleCard
                         title="Brand Verse (AdZap)"
                         icon={<Layout />}
-                        teamSize="5 Members"
+                        teamSize="5 Units"
+                        delay={0.3}
                         rules={[
-                            "Topic given on the spot",
-                            "5 mins performance time",
-                            "Props allowed (self-responsibility)"
+                            "Flash-topic assignment on stage.",
+                            "300-second performance window.",
+                            "Self-sourced prop-deployment allowed."
                         ]}
                     />
 
                     <RuleCard
-                        title="WebBid League (IPL Auction)"
+                        title="WebBid League (IPL)"
                         icon={<Trophy />}
-                        teamSize="2 Members"
+                        teamSize="2 Units"
+                        delay={0.4}
                         rules={[
-                            "Each player carries grading points",
-                            "Highest total points ranks higher",
-                            "Organizers’ decision is final"
+                            "Strategic bidding with assigned points.",
+                            "Squad value optimization wins.",
+                            "Real-time auction dynamics."
                         ]}
                     />
 
-                    {/* TECHNICAL SECTOR */}
-                    <CategoryHeader title="TECHNICAL SECTOR" />
+                    {/* SECTOR: TECHNICAL */}
+                    <div className="lg:col-span-3 mt-12">
+                        <CategoryHeader title="SECTOR_02: TECHNICAL" icon={<Cpu />} />
+                    </div>
 
                     <RuleCard
                         title="Web of Ideas (Paper)"
                         icon={<FileText />}
-                        teamSize="Max 2 Members"
+                        teamSize="Max 2 Units"
+                        delay={0.5}
                         rules={[
-                            "PPT format only",
-                            "5 mins + Q&A",
-                            "Topics: Quantum, AI, Cloud, Big Data, Cyber Security"
+                            "PPT format submission required.",
+                            "5m Briefing + Q&A debrief.",
+                            "Focus: AI, Quantum, Cyber-Sec, Cloud."
                         ]}
                     />
 
                     <RuleCard
-                        title="Web Craft (Web Design)"
-                        icon={<Cpu />}
-                        teamSize="Max 2 Members"
+                        title="Web Craft (Design)"
+                        icon={<Layout />}
+                        teamSize="Max 2 Units"
+                        delay={0.6}
                         rules={[
-                            "HTML, CSS, JS only",
-                            "No internet access / No templates",
-                            "Prelims will be conducted"
+                            "HTML/CSS/JS stack only.",
+                            "No template imports. Raw code only.",
+                            "Offline environment deployment."
                         ]}
                     />
 
                     <RuleCard
-                        title="Bug Busters (Debugging)"
+                        title="Bug Busters (Debug)"
                         icon={<Bug />}
-                        teamSize="Max 2 Members"
+                        teamSize="Max 2 Units"
+                        delay={0.7}
                         rules={[
-                            "C, Python, Java, C++ questions",
-                            "Internet usage prohibited",
-                            "Code will be provided"
+                            "Multi-language code verification.",
+                            "Identification of logic vulnerabilities.",
+                            "Time-sensitive repair challenges."
                         ]}
                     />
 
-                    {/* CULTURAL SECTOR */}
-                    <CategoryHeader title="CULTURAL SECTOR" />
+                    {/* SECTOR: CULTURAL */}
+                    <div className="lg:col-span-3 mt-12">
+                        <CategoryHeader title="SECTOR_03: CULTURAL" icon={<Music />} />
+                    </div>
 
                     <RuleCard
                         title="Velocity (Dance)"
                         icon={<Users />}
-                        teamSize="1 - 6 Members"
+                        teamSize="1 - 6 Units"
+                        delay={0.8}
                         rules={[
-                            "Solo / Group allowed",
-                            "Vulgarity = Instant Disqualification",
-                            "Submit songs before event"
+                            "Solo or squad deployment allowed.",
+                            "Pre-submission of audio tracks.",
+                            "Zero-tolerance for content vulgarity."
                         ]}
                     />
 
                     <RuleCard
                         title="Resonance (Singing)"
                         icon={<Mic2 />}
-                        teamSize="1 - 3 Members"
+                        teamSize="1 - 3 Units"
+                        delay={0.9}
                         rules={[
-                            "Karaoke allowed",
-                            "Any language allowed",
-                            "Strictly no vulgarity"
+                            "Karaoke/Acoustical support allowed.",
+                            "Multilingual vocal expression.",
+                            "Focus on pitch and sonic clarity."
                         ]}
                     />
-
-                </motion.div>
-
-                {/* FOOTER ACTION */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    className="mt-20 text-center bg-red-600/10 border border-red-600/20 p-8 rounded-3xl backdrop-blur-md"
-                >
-                    <h3 className="text-white font-black text-xl mb-4 italic">READY TO ENTER THE MULTIVERSE?</h3>
-                    <button className="px-10 py-4 bg-red-600 text-white font-black uppercase text-xs tracking-widest skew-x-[-15deg] hover:bg-red-500 transition-all">
-                        <span className="skew-x-[15deg] inline-block">REGISTER_NOW</span>
-                    </button>
-                </motion.div>
+                </div>
             </div>
+
+            {/* Bottom Accent */}
+            <div className="h-40" />
         </div>
     );
 }
 
 /* ================= HELPER COMPONENTS ================= */
 
-function CategoryHeader({ title }: { title: string }) {
+function CategoryHeader({ title, icon }: { title: string, icon: React.ReactNode }) {
     return (
-        <div className="col-span-1 md:col-span-2 lg:col-span-3 mt-10 mb-4">
-            <div className="flex items-center gap-4">
-                <h2 className="text-red-600 font-mono text-xs font-black tracking-[0.3em] whitespace-nowrap">{title}</h2>
-                <div className="h-[1px] w-full bg-red-600/20 shadow-[0_0_10px_rgba(220,38,38,0.5)]" />
+        <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            whileInView={{ x: 0, opacity: 1 }}
+            viewport={{ once: true }}
+            className="flex items-center gap-4 mb-8"
+        >
+            <div className="flex items-center justify-center w-10 h-10 bg-red-600 text-black skew-x-[-12deg] shadow-[4px_4px_0px_#fff]">
+                {icon}
             </div>
-        </div>
+            <h2 className="text-white font-black text-2xl md:text-3xl italic uppercase tracking-tighter">{title}</h2>
+            <div className="flex-grow h-[2px] bg-gradient-to-r from-red-600 to-transparent" />
+        </motion.div>
     );
 }
 
-function RuleCard({ title, icon, rules, teamSize, color = "border-zinc-800" }: any) {
+function RuleCard({ title, icon, rules, teamSize, delay }: any) {
+    const [rotate, setRotate] = useState({ x: 0, y: 0 });
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = (e.clientY - rect.top) / rect.height - 0.5;
+        const y = (e.clientX - rect.left) / rect.width - 0.5;
+        setRotate({ x: x * 10, y: -y * 10 });
+    };
+
     return (
         <motion.div
-            variants={{
-                hidden: { y: 20, opacity: 0 },
-                visible: { y: 0, opacity: 1 }
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay, duration: 0.5 }}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => setRotate({ x: 0, y: 0 })}
+            style={{
+                transform: `perspective(1000px) rotateX(${rotate.x}deg) rotateY(${rotate.y}deg)`,
+                transition: 'transform 0.1s ease-out'
             }}
-            whileHover={{ scale: 1.02, rotate: 1 }}
-            className={`bg-[#050505] border ${color} p-6 rounded-2xl relative group overflow-hidden shadow-2xl`}
+            className="group relative"
         >
-            {/* Web Line Decor */}
-            <div className="absolute top-0 right-0 w-16 h-16 opacity-10 group-hover:opacity-30 transition-opacity">
-                <svg viewBox="0 0 100 100" className="rotate-90">
-                    <path d="M0 0 L100 100 M20 0 L100 80 M40 0 L100 60" stroke="red" strokeWidth="2" />
-                </svg>
-            </div>
+            {/* Holographic Border Effect */}
+            <div className="absolute -inset-[1px] bg-gradient-to-br from-red-600 via-transparent to-cyan-500 rounded-2xl opacity-20 group-hover:opacity-100 transition-opacity duration-500" />
 
-            <div className="flex items-start justify-between mb-6">
-                <div className="p-3 bg-zinc-900 rounded-xl text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors duration-500">
-                    {React.cloneElement(icon, { size: 20 })}
+            <div className="relative bg-[#080808] border border-white/5 p-8 rounded-2xl overflow-hidden h-full">
+
+                {/* Comic Skew Decor */}
+                <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 -translate-y-12 translate-x-12 rotate-45 group-hover:bg-red-600/10 transition-colors" />
+
+                <div className="flex items-start justify-between mb-8">
+                    <div className="p-4 bg-zinc-900 border border-white/5 rounded-xl text-red-600 group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+                        {React.cloneElement(icon, { size: 24, strokeWidth: 2.5 })}
+                    </div>
+                    {teamSize && (
+                        <div className="text-[10px] font-black font-mono bg-white text-black px-3 py-1 skew-x-[-12deg] shadow-[3px_3px_0px_#ff0000]">
+                            {teamSize}
+                        </div>
+                    )}
                 </div>
-                {teamSize && (
-                    <span className="text-[9px] font-mono bg-red-600/10 text-red-500 px-3 py-1 rounded-full border border-red-600/20 uppercase tracking-widest">
-                        {teamSize}
-                    </span>
-                )}
+
+                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-6 group-hover:text-red-500 transition-colors">
+                    {title}
+                </h3>
+
+                <ul className="space-y-4">
+                    {rules.map((rule: string, i: number) => (
+                        <li key={i} className="flex items-start gap-3 text-sm text-zinc-400 group-hover:text-zinc-100 transition-colors">
+                            <motion.span
+                                animate={{ scale: [1, 1.2, 1] }}
+                                transition={{ repeat: Infinity, duration: 2, delay: i * 0.3 }}
+                                className="mt-1.5 w-1.5 h-1.5 shrink-0 bg-red-600 rotate-45 shadow-[0_0_8px_#ff0000]"
+                            />
+                            <span className="font-medium tracking-tight leading-relaxed">{rule}</span>
+                        </li>
+                    ))}
+                </ul>
+
+                {/* Corner Scan Line */}
+                <div className="absolute bottom-2 right-2 flex gap-1 opacity-20 group-hover:opacity-100 transition-opacity">
+                    <div className="w-1 h-4 bg-red-600" />
+                    <div className="w-1 h-4 bg-red-600/50" />
+                    <div className="w-1 h-4 bg-red-600/20" />
+                </div>
             </div>
-
-            <h3 className="text-white font-black text-lg uppercase italic tracking-tighter mb-4">{title}</h3>
-
-            <ul className="space-y-3">
-                {rules.map((rule: string, i: number) => (
-                    <li key={i} className="flex items-start gap-3 text-xs text-zinc-500 group-hover:text-zinc-300 transition-colors">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-red-600 shadow-[0_0_5px_red]" />
-                        {rule}
-                    </li>
-                ))}
-            </ul>
         </motion.div>
     );
 }

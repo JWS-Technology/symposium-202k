@@ -266,7 +266,7 @@ export default function DashboardPage() {
     );
 
     return (
-        <div className="min-h-screen bg-[#020202] text-zinc-300 relative selection:bg-red-600/30">
+        <div className="min-h-screen bg-[#020202] text-zinc-300 relative selection:bg-red-600/30 pt-30">
             <Toaster
                 position="bottom-right"
                 toastOptions={{

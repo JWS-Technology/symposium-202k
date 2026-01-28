@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaSpider, FaChevronDown, FaBolt } from "react-icons/fa6";
+import { FaSpider, FaChevronDown, FaBolt, FaCircleInfo } from "react-icons/fa6";
 import { HiOutlineMenuAlt3 } from "react-icons/hi";
 import { IoClose } from "react-icons/io5";
 import Link from "next/link";
@@ -10,6 +10,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isEventsOpen, setIsEventsOpen] = useState(false);
+  const [mobileEventsOpen, setMobileEventsOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -17,115 +18,78 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Lock scroll when menu is open
+  useEffect(() => {
+    if (isOpen) document.body.style.overflow = "hidden";
+    else document.body.style.overflow = "unset";
+  }, [isOpen]);
+
   const eventLinks = [
-    { name: "Technical", href: "/events/technical", jp: "オフステージ" },
-    { name: "Non Technical", href: "/events/non-technical", jp: "ステージ" },
-    { name: "Culturals", href: "/events/culturals", jp: "文化" },
+    { name: "Technical", href: "/events/technical", jp: "技術的" },
+    { name: "Non Technical", href: "/events/non-technical", jp: "非技術的" },
+    { name: "Culturals", href: "/events/culturals", jp: "文化祭" },
+  ];
+
+  const mainLinks = [
+    { name: "Rules", href: "/rules", jp: "規約", icon: <FaCircleInfo size={14} /> },
+    { name: "Contact", href: "/contact", jp: "連絡先", icon: null },
+    { name: "Register", href: "/register", jp: "登録", icon: null },
   ];
 
   return (
-    <nav className="fixed top-0 w-full z-[100] px-2 md:px-10 pt-4 transition-all duration-300">
+    <nav className="fixed top-0 w-full z-[100] px-3 md:px-10 pt-4 transition-all duration-300">
 
-      {/* --- GLOBAL STYLES (Keep consistent with Footer) --- */}
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Roboto+Mono:wght@700&family=Noto+Sans+JP:wght@900&display=swap');
         .font-comic { font-family: 'Bangers', cursive; letter-spacing: 0.1em; }
         .font-tech { font-family: 'Roboto Mono', monospace; }
         .font-jp { font-family: 'Noto Sans JP', sans-serif; }
-        
         .bg-dots {
           background-image: radial-gradient(circle, #333 1px, transparent 1px);
           background-size: 10px 10px;
         }
-
-        .glitch-nav-text { position: relative; }
-        .glitch-nav-text::before, .glitch-nav-text::after {
-          content: attr(data-text); position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000;
-        }
-        .glitch-nav-text::before {
-          left: 2px; text-shadow: -2px 0 #ff003c; clip-path: inset(0 0 0 0); animation: glitch-nav 2s infinite linear alternate-reverse;
-        }
-        .glitch-nav-text::after {
-          left: -2px; text-shadow: -2px 0 #00f0ff; clip-path: inset(0 0 0 0); animation: glitch-nav-2 3s infinite linear alternate-reverse;
-        }
-        @keyframes glitch-nav {
-          0% { clip-path: inset(10% 0 90% 0); } 100% { clip-path: inset(90% 0 10% 0); }
-        }
-        @keyframes glitch-nav-2 {
-          0% { clip-path: inset(90% 0 10% 0); } 100% { clip-path: inset(10% 0 90% 0); }
-        }
+        .stroke-comic { -webkit-text-stroke: 1px white; }
       `}</style>
 
-      {/* --- THE FLOATING COMIC PANEL --- */}
+      {/* --- DESKTOP/MOBILE HEADER --- */}
       <div
-        className={`max-w-7xl mx-auto flex justify-between items-center px-6 py-3 transition-all duration-300 relative border-2
+        className={`max-w-7xl mx-auto flex justify-between items-center px-4 md:px-6 py-3 transition-all duration-300 relative border-2
           ${isScrolled
-            ? "bg-black/90 backdrop-blur-xl border-[#00f0ff] shadow-[5px_5px_0px_#00f0ff] -skew-x-1"
+            ? "bg-black/95 backdrop-blur-xl border-[#00f0ff] shadow-[5px_5px_0px_#00f0ff] -skew-x-1"
             : "bg-black/60 border-transparent md:border-[#333] shadow-none"
           }`}
       >
-        {/* Top Hazard Bar (Only visible when scrolled) */}
         {isScrolled && (
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#ff003c] via-[#fff000] to-[#00f0ff]" />
         )}
 
-        {/* --- LOGO SECTION --- */}
-        <Link href="/" className="flex items-center gap-4 group relative z-50">
-          <motion.div
-            whileHover={{ rotate: 180, scale: 1.1 }}
-            className="relative p-2 border-2 border-white bg-black shadow-[4px_4px_0px_#ff003c]"
-          >
-            <div className="absolute inset-0 bg-dots opacity-50" />
-            <FaSpider className="text-white text-2xl relative z-10" />
+        <Link href="/" className="flex items-center gap-3 relative z-[150]">
+          <motion.div whileHover={{ rotate: 180 }} className="p-1.5 border-2 border-white bg-black shadow-[3px_3px_0px_#ff003c]">
+            <FaSpider className="text-white text-xl" />
           </motion.div>
-
-          <div className="flex flex-col relative">
-            <span className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none text-white font-comic glitch-nav-text" data-text="SYMPOSIUM">
+          <div className="flex flex-col">
+            <span className="text-2xl md:text-3xl font-black italic tracking-tighter uppercase leading-none text-white font-comic">
               ARA<span className="text-[#ff003c]">ZON</span>
-            </span>
-            <span className="text-[8px] font-tech text-[#00f0ff] tracking-[0.3em] uppercase absolute -bottom-2 left-0 bg-black px-1">
-              Symposium
             </span>
           </div>
         </Link>
 
-        {/* --- DESKTOP NAVIGATION --- */}
-        <div className="hidden md:flex items-center gap-8">
-
-          {/* Events Dropdown (Holo-Panel Style) */}
-          <div
-            className="relative"
-            onMouseEnter={() => setIsEventsOpen(true)}
-            onMouseLeave={() => setIsEventsOpen(false)}
-          >
-            <button className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group py-2 font-comic">
-              <FaBolt className="text-[#ff003c] text-xs group-hover:animate-pulse" />
-              Events
-              <FaChevronDown size={10} className={`transition-transform duration-200 ${isEventsOpen ? 'rotate-180 text-[#00f0ff]' : ''}`} />
+        {/* --- DESKTOP NAV --- */}
+        <div className="hidden lg:flex items-center gap-8">
+          <div className="relative" onMouseEnter={() => setIsEventsOpen(true)} onMouseLeave={() => setIsEventsOpen(false)}>
+            <button className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] flex items-center gap-2 font-comic">
+              <FaBolt className="text-[#ff003c] text-xs" />
+              Events <FaChevronDown size={10} className={`transition-transform ${isEventsOpen ? 'rotate-180' : ''}`} />
             </button>
-
             <AnimatePresence>
               {isEventsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20, skewX: 0 }}
-                  animate={{ opacity: 1, y: 0, skewX: -3 }}
-                  exit={{ opacity: 0, y: 20 }}
-                  className="absolute top-full left-0 w-56 bg-black border-2 border-[#ff003c] shadow-[8px_8px_0px_rgba(0,0,0,0.8)] p-1 z-50"
-                >
-                  <div className="bg-[#111] p-2 relative overflow-hidden">
-                    {/* Scanlines on dropdown */}
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 pointer-events-none bg-[length:100%_4px,3px_100%]" />
-
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                  className="absolute top-full left-0 w-56 bg-black border-2 border-[#ff003c] shadow-[8px_8px_0px_rgba(0,0,0,0.8)] p-1">
+                  <div className="bg-[#111] p-2">
                     {eventLinks.map((link) => (
-                      <Link
-                        key={link.name}
-                        href={link.href}
-                        className="block px-4 py-3 mb-1 text-sm font-black uppercase tracking-widest text-white hover:bg-[#00f0ff] hover:text-black hover:skew-x-6 transition-all relative group z-10 font-comic border border-transparent hover:border-black"
-                      >
-                        <div className="flex justify-between items-center">
-                          <span>{link.name}</span>
-                          <span className="text-[8px] font-jp opacity-0 group-hover:opacity-100 text-black font-black">{link.jp}</span>
-                        </div>
+                      <Link key={link.name} href={link.href} className="flex justify-between items-center px-4 py-3 text-sm font-black uppercase tracking-widest text-white hover:bg-[#00f0ff] hover:text-black font-comic transition-all group">
+                        <span>{link.name}</span>
+                        <span className="text-[9px] font-jp opacity-0 group-hover:opacity-100">{link.jp}</span>
                       </Link>
                     ))}
                   </div>
@@ -133,105 +97,97 @@ export default function Navbar() {
               )}
             </AnimatePresence>
           </div>
-
-          <Link href="/contact" className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group font-comic">
-            <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
-            Contact
-          </Link>
-          <Link href="/rules" className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group font-comic">
-            <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
-            Rules
-          </Link>
-
-          <Link href="/register" className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] transition-colors flex items-center gap-2 group font-comic">
-            <span className="w-2 h-2 bg-[#00f0ff] rotate-45 group-hover:rotate-90 transition-transform" />
-            Register
-          </Link>
-
-          {/* Login Button (Glitch Button) */}
+          {mainLinks.map((item) => (
+            <Link key={item.name} href={item.href} className="text-sm font-black uppercase italic tracking-widest text-zinc-300 hover:text-[#fff000] font-comic">
+              {item.name}
+            </Link>
+          ))}
           <Link href="/login">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="relative px-6 py-2 bg-[#ff003c] border-2 border-transparent hover:border-white hover:bg-black group skew-x-[-10deg] shadow-[4px_4px_0px_#000]"
-            >
-              <span className="relative z-10 text-sm font-black uppercase italic tracking-widest text-black group-hover:text-white transition-colors font-comic block skew-x-[10deg]">
-                Login <span className="font-jp text-xs ml-1">ログイン</span>
-              </span>
-            </motion.button>
+            <button className="px-6 py-2 bg-[#ff003c] border-2 border-transparent hover:border-white hover:bg-black font-comic text-black hover:text-white uppercase italic skew-x-[-10deg] shadow-[4px_4px_0px_#000] transition-all">
+              Login  <span className="text-sm font-jp ml-2">ログイン</span>
+            </button>
           </Link>
         </div>
 
-        {/* --- MOBILE TOGGLE --- */}
-        <button
-          className="md:hidden text-white bg-[#ff003c] p-2 border-2 border-black shadow-[3px_3px_0px_#00f0ff] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all"
-          onClick={() => setIsOpen(!isOpen)}
-        >
+        {/* --- MOBILE TRIGGER --- */}
+        <button className="lg:hidden z-[150] text-white bg-[#ff003c] p-2 border-2 border-black shadow-[3px_3px_0px_#00f0ff]" onClick={() => setIsOpen(!isOpen)}>
           {isOpen ? <IoClose size={24} /> : <HiOutlineMenuAlt3 size={24} />}
         </button>
       </div>
 
-      {/* --- MOBILE SIDEBAR MENU (COMIC PAGE STYLE) --- */}
+      {/* --- COMIC SIDEBAR MENU --- */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ clipPath: "polygon(100% 0, 100% 0, 100% 100%, 100% 100%)" }}
             animate={{ clipPath: "polygon(0 0, 100% 0, 100% 100%, 15% 100%)" }}
             exit={{ clipPath: "polygon(100% 0, 100% 0, 100% 100%, 100% 100%)" }}
-            transition={{ duration: 0.4, ease: "anticipate" }}
-            className="fixed inset-y-0 right-0 w-full md:w-[500px] bg-[#fff000] z-[110] p-1 shadow-[-20px_0_50px_rgba(0,0,0,0.8)]"
+            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            className="fixed inset-0 w-full h-screen bg-[#fff000] z-[140] lg:hidden p-1"
           >
-            {/* Inner Black Container for Contrast */}
-            <div className="bg-black h-full w-full relative overflow-hidden flex flex-col p-8">
-
-              {/* Background Texture */}
+            <div className="bg-black h-full w-full relative flex flex-col p-8 pt-24 overflow-hidden">
               <div className="absolute inset-0 bg-dots opacity-20 pointer-events-none" />
-              <div className="absolute -right-10 -bottom-10 opacity-20 pointer-events-none text-[#ff003c]">
-                <FaSpider size={300} />
-              </div>
 
-              <div className="flex justify-between items-center mb-12 border-b-2 border-[#ff003c] pb-4">
-                <span className="text-3xl font-black font-comic text-white italic">MENU <span className="text-[#00f0ff] text-sm not-italic font-jp">メニュー</span></span>
-                <button onClick={() => setIsOpen(false)} className="text-white hover:text-[#ff003c] transition-colors"><IoClose size={40} /></button>
-              </div>
-
-              <div className="flex flex-col gap-6 relative z-10">
-                {/* Mobile Events */}
-                <div className="flex flex-col gap-2">
-                  <p className="text-[#00f0ff] font-tech text-xs tracking-widest uppercase mb-2">// 01. EVENTS</p>
-                  {eventLinks.map((link) => (
-                    <Link
-                      key={link.name}
-                      href={link.href}
-                      onClick={() => setIsOpen(false)}
-                      className="text-4xl font-black uppercase italic text-transparent stroke-white stroke-1 hover:text-[#ff003c] hover:stroke-0 transition-all font-comic"
-                      style={{ WebkitTextStroke: "1px white" }}
-                    >
-                      {link.name}
-                    </Link>
-                  ))}
+              <div className="flex flex-col gap-6 relative z-10 overflow-y-auto pb-10">
+                {/* Mobile Events Accordion */}
+                <div className="border-b-2 border-zinc-900 pb-2">
+                  <button onClick={() => setMobileEventsOpen(!mobileEventsOpen)} className="w-full flex justify-between items-center text-4xl font-black uppercase italic text-white font-comic">
+                    <span>EVENTS <span className="text-[#00f0ff] text-[10px] font-jp not-italic ml-2 tracking-widest">イベント</span></span>
+                    <FaChevronDown size={20} className={`text-[#ff003c] transition-transform ${mobileEventsOpen ? 'rotate-180' : ''}`} />
+                  </button>
+                  <AnimatePresence>
+                    {mobileEventsOpen && (
+                      <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden flex flex-col pl-4 mt-4 gap-4">
+                        {eventLinks.map((link) => (
+                          <Link key={link.name} href={link.href} onClick={() => setIsOpen(false)} className="text-3xl font-black uppercase italic text-transparent stroke-comic font-comic hover:text-[#ff003c] transition-all">
+                            {link.name}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
 
-                {/* Other Links */}
-                <div className="h-[1px] w-full bg-zinc-800 my-2" />
-
-                <Link href="/contact" onClick={() => setIsOpen(false)} className="text-3xl font-black uppercase italic text-white hover:text-[#fff000] transition-colors font-comic flex items-center justify-between">
-                  Contact <span className="text-xs font-jp text-zinc-500">連絡</span>
-                </Link>
-                <Link href="/register" onClick={() => setIsOpen(false)} className="text-3xl font-black uppercase italic text-white hover:text-[#fff000] transition-colors font-comic flex items-center justify-between">
-                  Register <span className="text-xs font-jp text-zinc-500">登録</span>
-                </Link>
+                {/* Main Navigation Links (Includes Rules) */}
+                {mainLinks.map((item) => (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsOpen(false)}
+                    className="text-4xl font-black uppercase italic text-white hover:text-[#fff000] font-comic border-b-2 border-zinc-900 pb-2 flex justify-between items-center group"
+                  >
+                    <span>{item.name}</span>
+                    <span className="text-xs font-jp text-zinc-600 group-hover:text-[#fff000] transition-colors">{item.jp}</span>
+                  </Link>
+                ))}
               </div>
 
-              <div className="mt-auto border-t-2 border-[#00f0ff] pt-6 flex flex-col gap-3">
-                <Link href="/login" onClick={() => setIsOpen(false)}>
-                  <button className="w-full bg-[#ff003c] text-black py-4 font-black uppercase italic tracking-widest hover:bg-white transition-colors border-2 border-transparent hover:border-black font-comic text-xl">
-                    Login
-                  </button>
-                </Link>
-                <div className="flex justify-between text-zinc-500 font-tech text-[10px]">
-                  <span>SECURE_CONNECTION</span>
-                  <span>v.2.0.4</span>
+              {/* --- TERMINAL FOOTER SECTION --- */}
+              <div className="mt-auto relative z-10 pt-6 border-t-2 border-[#ff003c]/20">
+                <div className="flex flex-col gap-4">
+
+                  {/* Status Bar */}
+                  <div className="flex items-center justify-between text-[9px] font-tech text-zinc-500 uppercase tracking-widest mb-1">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                      <span>Link_Established: {new Date().getFullYear()}</span>
+                    </div>
+                    <span>Loc_Chennai_IN</span>
+                  </div>
+
+                  <Link href="/login" onClick={() => setIsOpen(false)}>
+                    <button className="w-full bg-[#ff003c] text-black py-5 font-black uppercase italic tracking-widest font-comic text-2xl shadow-[6px_6px_0px_#fff] active:translate-y-1 transition-all">
+                      LOGIN_SYSTEM <span className="text-sm font-jp ml-2">ログイン</span>
+                    </button>
+                  </Link>
+
+                  <div className="flex justify-between items-center text-zinc-600 font-tech text-[8px] uppercase tracking-widest">
+                    <div className="flex flex-col">
+                      <span>Terminal_v2.0.4</span>
+                      <span className="text-[#00f0ff]">Status: Ready_To_Launch</span>
+                    </div>
+                    <FaSpider className="text-zinc-800 animate-spin-slow" size={24} />
+                  </div>
                 </div>
               </div>
             </div>
