@@ -79,11 +79,28 @@ export default function AdminDashboard() {
                     />
 
                     <AdminButton
+                        label="Qustions "
+                        desc="Monitor and authorize incoming credit transfers."
+                        icon={<CreditCard size={24} />}
+                        highlight
+                        count="SECURE_GATE"
+                        onClick={() => router.push("/admin/questions")}
+                    />
+
+                    <AdminButton
                         label="Manage Events"
                         desc="Configure sector mission parameters and rules."
                         icon={<Calendar size={24} />}
                         count="SECTOR_CFG"
                         onClick={() => router.push("/admin/events")}
+                    />
+
+                    <AdminButton
+                        label="Results"
+                        desc="Configure sector mission parameters and rules."
+                        icon={<Calendar size={24} />}
+                        count="SECTOR_CFG"
+                        onClick={() => router.push("/admin/results")}
                     />
                 </div>
 
