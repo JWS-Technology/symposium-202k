@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import EventCategories from "@/components/EventCategories";
+import Prize from "@/components/Prize";
 
 export default function Home() {
   const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
@@ -73,7 +74,7 @@ export default function Home() {
       <div id="hero">
         <Hero timeLeft={timeLeft} />
       </div>
-
+      <Prize />
       <EventCategories />
 
       {/* SPIDER VIEW COUNTER - FIXED BOTTOM RIGHT */}
