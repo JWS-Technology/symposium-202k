@@ -192,7 +192,7 @@ export default function SpiderPortal() {
                         <div className="flex flex-col items-center mb-8 text-center">
                             <Target className={`w-12 h-12 mb-4 transition-all ${isGlitching ? 'text-blue-500' : 'text-red-600'}`} />
                             <h1 className={`text-4xl font-[1000] text-white tracking-tighter uppercase italic leading-none ${isGlitching ? 'glitch-red' : ''}`}>
-                                Spider<span className="text-red-600">Net</span>
+                                Login<span className="text-red-600">_Here</span>
                             </h1>
                             <p className="text-[10px] text-gray-500 font-black tracking-[0.5em] uppercase mt-4">Auth Terminal</p>
                         </div>
@@ -208,14 +208,14 @@ export default function SpiderPortal() {
                                         autoComplete="email"
                                         value={form.email}
                                         onChange={handleChange}
-                                        placeholder="variant@gmail.com"
+                                        placeholder="Team@gmail.com"
                                         className="stark-field bg-transparent border-none outline-none text-base w-full focus:ring-0 placeholder:opacity-10"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-2">
-                                <label className="elegant-label px-1">Access Key</label>
+                                <label className="elegant-label px-1">Password</label>
                                 <div className="stark-input-container flex items-center px-4 py-4">
                                     <Lock className="w-4 h-4 text-red-700 mr-3 opacity-40" />
                                     <input
