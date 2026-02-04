@@ -19,7 +19,8 @@ import {
     Zap,
     Trash2,
     Edit3,
-    AlertCircle
+    AlertCircle,
+    ShieldCheck
 } from "lucide-react";
 import PaymentQR from "@/components/PaymentQR";
 
@@ -30,6 +31,8 @@ interface UserData {
     email: string;
     phone: string;
     college: string;
+    department: string;
+
 }
 
 interface Participant {
@@ -310,10 +313,27 @@ export default function DashboardPage() {
                         <h2 className="text-lg font-black text-white uppercase italic text-center leading-tight">{user?.name}</h2>
                         <p className="text-red-600 font-mono text-[10px] tracking-tighter mt-1">ID: {user?.teamId}</p>
                     </div>
-                    <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <InfoBox label="Academy" value={user?.college || "N/A"} icon={<School />} />
-                        <InfoBox label="Comm-Link" value={user?.phone || "N/A"} icon={<Phone />} />
-                        <InfoBox label="Email" value={user?.email || "N/A"} icon={<Mail />} />
+                    <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <InfoBox
+                            label="Academy / Institution"
+                            value={user?.college || "N/A"}
+                            icon={<School className="w-6 h-6 text-red-600" />}
+                        />
+                        <InfoBox
+                            label="Sector / Department"
+                            value={user?.department || "N/A"}
+                            icon={<ShieldCheck className="w-6 h-6 text-red-600" />}
+                        />
+                        <InfoBox
+                            label="Comm-Link / Phone"
+                            value={user?.phone || "N/A"}
+                            icon={<Phone className="w-6 h-6 text-red-600" />}
+                        />
+                        <InfoBox
+                            label="Digital Signature / Email"
+                            value={user?.email || "N/A"}
+                            icon={<Mail className="w-6 h-6 text-red-600" />}
+                        />
                     </div>
                 </div>
 
