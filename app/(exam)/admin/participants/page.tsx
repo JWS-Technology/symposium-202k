@@ -78,32 +78,6 @@ export default function AdminParticipantsPage() {
         );
     }, [participants, searchTerm]);
 
-
-    /* ================= DELETION LOGIC ================= */
-    // const terminateParticipant = async (participantId: string) => {
-    //     const token = localStorage.getItem("adminToken");
-    //     try {
-    //         const res = await fetch("/api/admin/delete-participant", {
-    //             method: "DELETE",
-    //             headers: {
-    //                 "Content-Type": "application/json",
-    //                 Authorization: `Bearer ${token}`
-    //             },
-    //             body: JSON.stringify({ participantId }),
-    //         });
-
-    //         const data = await res.json();
-    //         if (data.success) {
-    //             setParticipants(prev => prev.filter(p => p._id !== participantId));
-    //             setTerminatingId(null);
-    //         } else {
-    //             alert(`TERMINATION_REJECTED: ${data.message}`);
-    //         }
-    //     } catch (err) {
-    //         console.error("CRITICAL_DELETE_FAILURE");
-    //     }
-    // };
-
     const terminateParticipant = async (participantId: string) => {
         const token = localStorage.getItem("adminToken");
         try {
