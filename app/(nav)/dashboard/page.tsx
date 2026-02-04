@@ -315,22 +315,22 @@ export default function DashboardPage() {
                     </div>
                     <div className="md:col-span-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                         <InfoBox
-                            label="Academy / Institution"
+                            label="Institution"
                             value={user?.college || "N/A"}
                             icon={<School className="w-6 h-6 text-red-600" />}
                         />
                         <InfoBox
-                            label="Sector / Department"
+                            label="Department"
                             value={user?.department || "N/A"}
                             icon={<ShieldCheck className="w-6 h-6 text-red-600" />}
                         />
                         <InfoBox
-                            label="Comm-Link / Phone"
+                            label="Phone"
                             value={user?.phone || "N/A"}
                             icon={<Phone className="w-6 h-6 text-red-600" />}
                         />
                         <InfoBox
-                            label="Digital Signature / Email"
+                            label="Email"
                             value={user?.email || "N/A"}
                             icon={<Mail className="w-6 h-6 text-red-600" />}
                         />
@@ -387,7 +387,7 @@ export default function DashboardPage() {
                                                         </div>
                                                     ))}
                                                     {p.events.length < 2 && p.paymentStatus !== "PAID" && (
-                                                        <button onClick={() => openAddEventMode(p)} className="px-3 py-1 border border-dashed border-zinc-800 hover:border-red-600 text-zinc-600 hover:text-red-500 rounded-md text-[9px] font-black uppercase">+ ADD EVENT</button>
+                                                        <button onClick={() => openAddEventMode(p)} className="px-3 py-1 border border-dashed border-zinc-800 hover:border-red-600 text-zinc-600 hover:text-red-500 rounded-md text-[9px] font-black uppercase">+ ADD PARTICIPANT</button>
                                                     )}
                                                 </div>
                                             </div>
@@ -419,8 +419,8 @@ export default function DashboardPage() {
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#050505] border border-red-600/30 rounded-2xl p-8 w-full max-w-lg shadow-[0_0_50px_rgba(220,38,38,0.1)]">
                             <div className="flex justify-between items-center mb-6">
                                 <div>
-                                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">{isEditSwap ? "SWAP" : "ADD"} <span className="text-red-600">EVENT_</span></h2>
-                                    <p className="text-zinc-500 text-[10px] font-mono mt-1">{editingId ? "Updating Existing Roster" : "New Personnel Registry"}</p>
+                                    <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter">{isEditSwap ? "SWAP" : "ADD"} <span className="text-red-600">PARTICIPANT_</span></h2>
+                                    <p className="text-zinc-500 text-[10px] font-mono mt-1">{editingId ? "Updating Existing Roster" : "New Person Register To Event"}</p>
                                 </div>
                                 <button onClick={closeForm} className="p-2 hover:bg-zinc-900 rounded-full transition-colors"><X size={20} className="text-zinc-600 hover:text-white" /></button>
                             </div>
@@ -430,7 +430,7 @@ export default function DashboardPage() {
                                 <div className="mb-6 p-3 bg-red-600/5 border border-red-600/20 rounded-lg flex items-start gap-3">
                                     <AlertCircle size={16} className="text-red-600 mt-0.5" />
                                     <p className="text-[10px] leading-relaxed text-zinc-400 font-mono uppercase tracking-tighter">
-                                        Sector Restricted to <span className="text-red-500">{allowedSectors.join(" & ")}</span> based on existing entry.
+                                        Event Restricted to <span className="text-red-500">{allowedSectors.join(" & ")}</span> based on existing entry.
                                     </p>
                                 </div>
                             )}
@@ -438,37 +438,37 @@ export default function DashboardPage() {
                             <form onSubmit={handleFormSubmit} className="space-y-5">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Identity_Name</label>
+                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Participant_Name</label>
                                         <input required placeholder="Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} disabled={!!editingId}
                                             className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 disabled:opacity-50" />
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Dept_No</label>
-                                        <input required placeholder="DNO" value={formData.dno} onChange={e => setFormData({ ...formData, dno: e.target.value })} disabled={!!editingId}
+                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Roll_No (College_Id)</label>
+                                        <input required placeholder="Roll_No" value={formData.dno} onChange={e => setFormData({ ...formData, dno: e.target.value })} disabled={!!editingId}
                                             className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 disabled:opacity-50" />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Comm_Link (Email)</label>
+                                    <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Email</label>
                                     <input required type="email" placeholder="Email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} disabled={!!editingId}
                                         className="w-full bg-zinc-900/50 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 disabled:opacity-50" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Sector</label>
+                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Event Category</label>
                                         <select required value={formData.eventType} onChange={e => setFormData({ ...formData, eventType: e.target.value as any, eventName: "" })}
                                             className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 text-xs">
-                                            <option value="">Select_Sector</option>
+                                            <option value="">Select_Category</option>
                                             {allowedSectors.map(s => <option key={s} value={s}>{s}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-1">
-                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Operation</label>
+                                        <label className="text-[9px] font-black text-zinc-500 uppercase ml-1">Events</label>
                                         <select required value={formData.eventName} onChange={e => setFormData({ ...formData, eventName: e.target.value })} disabled={!formData.eventType}
                                             className="w-full bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-white outline-none focus:border-red-600 text-xs disabled:opacity-30">
-                                            <option value="">Select_Task</option>
+                                            <option value="">Select_Events</option>
                                             {filteredEventOptions.map(ev => <option key={ev._id} value={ev.eventName}>{ev.eventName}</option>)}
                                         </select>
                                     </div>
