@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
     Users, ShieldCheck, Search, FileDown, Globe, Database,
     Zap, Fingerprint, CheckCircle2, Clock, ChevronDown,
-    FileText, Table as TableIcon, Download, Loader2
+    FileText, Table as TableIcon, Download, Loader2, Trash2, Check, X
 } from "lucide-react";
 
 // Export Libraries
@@ -40,6 +40,7 @@ export default function AdminParticipantsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [isExporting, setIsExporting] = useState(false);
     const [showExportMenu, setShowExportMenu] = useState(false);
+    const [terminatingId, setTerminatingId] = useState<string | null>(null);
 
     /* ================= DATA FETCHING ================= */
     useEffect(() => {
@@ -76,6 +77,60 @@ export default function AdminParticipantsPage() {
             p.events.some(e => e.eventName.toLowerCase().includes(searchTerm.toLowerCase()))
         );
     }, [participants, searchTerm]);
+
+
+    /* ================= DELETION LOGIC ================= */
+    // const terminateParticipant = async (participantId: string) => {
+    //     const token = localStorage.getItem("adminToken");
+    //     try {
+    //         const res = await fetch("/api/admin/delete-participant", {
+    //             method: "DELETE",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //                 Authorization: `Bearer ${token}`
+    //             },
+    //             body: JSON.stringify({ participantId }),
+    //         });
+
+    //         const data = await res.json();
+    //         if (data.success) {
+    //             setParticipants(prev => prev.filter(p => p._id !== participantId));
+    //             setTerminatingId(null);
+    //         } else {
+    //             alert(`TERMINATION_REJECTED: ${data.message}`);
+    //         }
+    //     } catch (err) {
+    //         console.error("CRITICAL_DELETE_FAILURE");
+    //     }
+    // };
+
+    const terminateParticipant = async (participantId: string) => {
+        const token = localStorage.getItem("adminToken");
+        try {
+            const res = await fetch("/api/admin/delete-participants", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ participantId }),
+            });
+
+            // 1. CHECK STATUS FIRST
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(`UPLINK_REJECTED: Status ${res.status} - ${errorText}`);
+            }
+
+            const data = await res.json();
+            if (data.success) {
+                setParticipants(prev => prev.filter(p => p._id !== participantId));
+                setTerminatingId(null);
+            }
+        } catch (err: any) {
+            console.error("CRITICAL_DELETE_FAILURE:", err.message);
+        }
+    };
 
     /* ================= EXPORT METHODS ================= */
 
@@ -247,11 +302,8 @@ export default function AdminParticipantsPage() {
                 </header>
 
                 {/* REGISTRY TABLE */}
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="relative bg-[#050505] border border-white/5 rounded-2xl overflow-hidden"
-                >
+                {/* REGISTRY TABLE */}
+                <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="relative bg-[#050505] border border-white/5 rounded-2xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm">
                             <thead className="text-[10px] uppercase tracking-[0.3em] text-zinc-600 font-black bg-white/[0.01]">
@@ -259,7 +311,8 @@ export default function AdminParticipantsPage() {
                                     <th className="p-6 border-b border-white/5">Identity</th>
                                     <th className="p-6 border-b border-white/5">Event_Configuration</th>
                                     <th className="p-6 border-b border-white/5">Origin_Unit</th>
-                                    <th className="p-6 border-b border-white/5 text-right">Payment</th>
+                                    <th className="p-6 border-b border-white/5">Status</th>
+                                    <th className="p-6 border-b border-white/5 text-right">Protocol</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/[0.02]">
@@ -267,52 +320,64 @@ export default function AdminParticipantsPage() {
                                     <tr key={p._id} className="group hover:bg-red-600/[0.03] transition-colors">
                                         <td className="p-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 rounded-lg bg-zinc-950 border border-zinc-900 flex items-center justify-center font-mono text-[10px] text-zinc-600 group-hover:text-red-500 transition-all">
+                                                <div className="w-8 h-8 rounded bg-zinc-950 border border-zinc-900 flex items-center justify-center font-mono text-[9px] text-zinc-600">
                                                     {String(i + 1).padStart(2, '0')}
                                                 </div>
                                                 <div>
-                                                    <div className="font-bold text-white uppercase text-base tracking-tight">{p.name}</div>
-                                                    <div className="text-[10px] font-mono text-zinc-600">{p.email}</div>
+                                                    <div className="font-bold text-white uppercase text-sm tracking-tight">{p.name}</div>
+                                                    <div className="text-[9px] font-mono text-zinc-600 uppercase">{p.email}</div>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="p-6">
                                             <div className="flex flex-wrap gap-2">
                                                 {p.events.map((ev, idx) => (
-                                                    <div key={idx} className="flex flex-col bg-zinc-900/50 border border-zinc-800 px-3 py-1 rounded">
-                                                        <span className="text-[7px] text-red-500 font-bold uppercase">{ev.eventType}</span>
-                                                        <span className="text-[10px] text-zinc-300 font-black uppercase">{ev.eventName}</span>
+                                                    <div key={idx} className="bg-zinc-900/50 border border-zinc-800 px-2 py-0.5 rounded">
+                                                        <span className="text-[8px] text-zinc-300 font-black uppercase tracking-tighter">{ev.eventName}</span>
                                                     </div>
                                                 ))}
                                             </div>
                                         </td>
+                                        <td className="p-6 font-mono text-[10px]">
+                                            <span className="text-zinc-500">TID:</span> <span className="text-red-600">{p.teamId}</span>
+                                        </td>
                                         <td className="p-6">
-                                            <div className="text-[10px] font-mono space-y-1">
-                                                <p className="text-zinc-500 italic">TEAM: <span className="text-white not-italic font-bold">{p.teamId}</span></p>
-                                                <p className="text-zinc-500 italic">DNO: <span className="text-zinc-400 not-italic">{p.dno}</span></p>
+                                            <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-sm border text-[8px] font-black uppercase tracking-widest ${p.paymentStatus === "PAID" ? "border-green-500/20 text-green-500" : "border-amber-500/20 text-amber-500"}`}>
+                                                {p.paymentStatus}
                                             </div>
                                         </td>
                                         <td className="p-6 text-right">
-                                            <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-sm border text-[9px] font-black uppercase tracking-widest ${p.paymentStatus === "PAID"
-                                                ? "bg-green-500/10 border-green-500/20 text-green-500"
-                                                : "bg-amber-500/10 border-amber-500/20 text-amber-500 pulse"
-                                                }`}>
-                                                {p.paymentStatus === "PAID" ? <CheckCircle2 size={12} /> : <Clock size={12} />}
-                                                {p.paymentStatus}
+                                            <div className="flex justify-end min-w-[80px]">
+                                                <AnimatePresence mode="wait">
+                                                    {terminatingId === p._id ? (
+                                                        <motion.div key="confirm" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="flex gap-2">
+                                                            <button onClick={() => terminateParticipant(p._id)} className="p-2 bg-red-600 text-white rounded hover:bg-white hover:text-red-600 transition-all shadow-lg shadow-red-600/20">
+                                                                <Check size={14} strokeWidth={3} />
+                                                            </button>
+                                                            <button onClick={() => setTerminatingId(null)} className="p-2 bg-zinc-800 text-zinc-400 rounded hover:text-white transition-all">
+                                                                <X size={14} strokeWidth={3} />
+                                                            </button>
+                                                        </motion.div>
+                                                    ) : (
+                                                        <motion.button
+                                                            key="delete"
+                                                            onClick={() => setTerminatingId(p._id)}
+                                                            className="p-2 text-zinc-600 hover:text-red-600 hover:bg-red-600/10 rounded-lg transition-all"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </motion.button>
+                                                    )}
+                                                </AnimatePresence>
                                             </div>
                                         </td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                        {filteredParticipants.length === 0 && (
-                            <div className="p-20 text-center font-mono text-zinc-600 uppercase tracking-widest text-xs">
-                                [!] No agents found in sector scan
-                            </div>
-                        )}
                     </div>
                 </motion.div>
             </div>
+
         </div>
     );
 }
@@ -329,4 +394,8 @@ function StatCard({ label, value, icon, active, statusColor }: { label: string, 
             </p>
         </div>
     );
+}
+
+function setTerminatingId(arg0: null) {
+    throw new Error("Function not implemented.");
 }
