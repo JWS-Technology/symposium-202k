@@ -155,7 +155,31 @@ export default function Hero({ timeLeft }: HeroProps) {
                   </motion.button>
                 </Link>
               </div>
+
             </motion.div>
+            {/* NEW: RUNNING MARQUEE AT BOTTOM */}
+            <div className="overflow-hidden whitespace-nowrap border-t border-white/10 pt-4 pb-2 w-full mt-4">
+              <motion.div
+                initial={{ x: 0 }}
+                animate={{ x: "-50%" }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear"
+                }}
+                className="inline-block"
+              >
+                <div className="flex gap-8 items-center">
+                  {[...Array(6)].map((_, i) => (
+                    <span key={i} className="text-[10px] md:text-xs font-black italic uppercase text-white tracking-widest flex items-center gap-4">
+                      REGISTRATIONS OPEN UNTIL 06.02.2026 AT 5.00 PM <span className="text-red-600 opacity-50">•</span>
+                      GRAND CASH PRIZE ₹2,000 <span className="text-cyan-400 opacity-50">•</span>
+                      <span className="text-red-600 opacity-50">•</span>
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            </div>
 
             {/* Web Accent */}
             <motion.div
