@@ -9,7 +9,11 @@ import {
     ShieldAlert,
     Activity,
     ChevronRight,
-    Lock
+    Lock,
+    BrainCircuit,
+    Trophy,
+    Database,
+    Zap
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -17,120 +21,117 @@ export default function AdminDashboard() {
 
     return (
         <div className="min-h-screen bg-[#020202] text-zinc-300 font-sans selection:bg-red-600 relative overflow-hidden">
-
             {/* BACKGROUND TECH OVERLAYS */}
             <div className="fixed inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(185,28,28,0.06),transparent)] pointer-events-none" />
             <div className="fixed inset-0 opacity-5 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none" />
 
-            {/* TOP STATUS BAR (Mobile Responsive) */}
-            <div className="w-full bg-zinc-900/50 border-b border-zinc-800 px-6 py-2 flex justify-between items-center relative z-20">
+            {/* TOP STATUS BAR */}
+            <div className="w-full bg-zinc-900/50 border-b border-white/5 px-6 py-3 flex justify-between items-center relative z-20 backdrop-blur-md">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                        <span className="text-[10px] font-mono uppercase tracking-widest text-zinc-500">System_Online</span>
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-red-600 rounded-full animate-pulse shadow-[0_0_8px_#dc2626]" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400">Mainframe_Secure</span>
                     </div>
                 </div>
                 <button
                     onClick={() => { localStorage.removeItem("adminToken"); router.push("/admin/login"); }}
-                    className="text-[10px] font-mono uppercase tracking-widest hover:text-red-500 transition-colors flex items-center gap-2"
+                    className="text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-red-500 transition-colors flex items-center gap-2 group"
                 >
-                    <Lock size={12} /> Secure_Logout
+                    <Lock size={12} className="group-hover:animate-bounce" /> Terminate_Session
                 </button>
             </div>
 
-            <main className="max-w-6xl mx-auto px-6 py-12 md:py-20 relative z-10">
-
+            <main className="max-w-7xl mx-auto px-6 py-12 md:py-20 relative z-10">
                 {/* HERO HEADER */}
-                <header className="mb-16">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-2"
-                    >
-                        <div className="flex items-center gap-3 font-mono text-[10px] text-red-600 tracking-[0.5em] uppercase font-black">
-                            <ShieldAlert size={16} /> Admin_Level_Authorization
+                <header className="mb-16 border-l-4 border-red-600 pl-8">
+                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
+                        <div className="flex items-center gap-3 font-mono text-[10px] text-red-600 tracking-[0.5em] uppercase font-black mb-2">
+                            <ShieldAlert size={16} /> Root_Access_Granted
                         </div>
-                        <h1 className="text-5xl md:text-7xl font-[1000] italic text-white uppercase tracking-tighter">
-                            Control_<span className="text-red-600 text-outline">Panel</span>
+                        <h1 className="text-6xl md:text-8xl font-[1000] italic text-white uppercase tracking-tighter leading-none">
+                            CORE_<span className="text-red-600">HUD</span>
                         </h1>
-                        <p className="text-zinc-500 font-mono text-xs md:text-sm tracking-widest uppercase">
-                            Global Symposium Management Interface v4.0.2
+                        <p className="text-zinc-500 font-mono text-xs md:text-sm tracking-[0.3em] uppercase mt-4">
+                            Symposium_Operational_Directorate // v4.0.2
                         </p>
                     </motion.div>
                 </header>
 
-                {/* MAIN GRID - Fully Mobile Responsive */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                {/* MAIN GRID */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     <AdminButton
-                        label="View Participants"
-                        desc="Access global database of all registered agents."
+                        label="Participants"
+                        desc="Monitor global database of all field participants."
                         icon={<Users size={24} />}
-                        count="NODE_SCAN"
+                        tag="USER_DB"
                         onClick={() => router.push("/admin/participants")}
                     />
 
                     <AdminButton
-                        label="Verify Payments"
-                        desc="Monitor and authorize incoming credit transfers."
+                        label="Payment Status"
+                        desc="Authorize and verify incoming credit transfers."
                         icon={<CreditCard size={24} />}
+                        tag="FIN_SYNC"
                         highlight
-                        count="SECURE_GATE"
                         onClick={() => router.push("/admin/payments")}
                     />
 
                     <AdminButton
-                        label="Qustions "
-                        desc="Monitor and authorize incoming credit transfers."
-                        icon={<CreditCard size={24} />}
-                        highlight
-                        count="SECURE_GATE"
+                        label="Qustions Uploading"
+                        desc="Configure mission questionnaires and logic tests."
+                        icon={<BrainCircuit size={24} />}
+                        tag="INTEL_GEN"
                         onClick={() => router.push("/admin/questions")}
                     />
 
                     <AdminButton
-                        label="Manage Events"
-                        desc="Configure sector mission parameters and rules."
+                        label="Events"
+                        desc="Manage event scheduling and mission rules."
                         icon={<Calendar size={24} />}
-                        count="SECTOR_CFG"
+                        tag="TIME_SYNC"
                         onClick={() => router.push("/admin/events")}
                     />
 
                     <AdminButton
-                        label="Results"
-                        desc="Configure sector mission parameters and rules."
-                        icon={<Calendar size={24} />}
-                        count="SECTOR_CFG"
+                        label="Result"
+                        desc="Calculate and finalize tactical mission scores."
+                        icon={<Trophy size={24} />}
+                        tag="RANK_OUT"
+                        highlight
                         onClick={() => router.push("/admin/results")}
+                    />
+
+                    <AdminButton
+                        label="Teams"
+                        desc="Manage collective team entities and credentials."
+                        icon={<Database size={24} />}
+                        tag="TEAM_NODES"
+                        onClick={() => router.push("/admin/users")}
                     />
                 </div>
 
                 {/* FOOTER SYSTEM TICKER */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="mt-16 pt-8 border-t border-zinc-900 flex flex-col md:flex-row justify-between items-center gap-6"
-                >
-                    <div className="flex items-center gap-6">
-                        <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Database_Health</span>
-                            <div className="flex gap-1 mt-1">
-                                {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="w-4 h-1 bg-red-600/40" />)}
+                <footer className="mt-20 pt-10 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div className="flex items-center gap-10">
+                        <div className="space-y-2">
+                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Network_Stability</span>
+                            <div className="flex gap-1">
+                                {[1, 2, 3, 4, 5, 6, 7, 8].map(i => <div key={i} className="w-3 h-1.5 bg-red-600/40" />)}
                             </div>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Uptime</span>
-                            <span className="text-white font-mono text-xs">99.998%</span>
+                        <div className="space-y-1">
+                            <span className="text-[9px] font-black text-zinc-600 uppercase tracking-widest">Sync_Rate</span>
+                            <span className="text-white font-mono text-xs block italic">0.002ms_LATENCY</span>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 text-zinc-500 font-mono text-[10px] uppercase">
-                        <Activity size={14} className="text-red-600 animate-pulse" /> Live_Syncing_with_Mainframe
+                    <div className="flex items-center gap-3 text-red-600 font-mono text-[10px] uppercase font-black animate-pulse">
+                        <Zap size={14} fill="currentColor" /> Mainframe_Link_Stable
                     </div>
-                </motion.div>
+                </footer>
             </main>
 
             {/* CRT SCANLINE OVERLAY */}
-            <div className="fixed inset-0 pointer-events-none z-[100] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%)] bg-[length:100%_4px] opacity-20" />
+            <div className="fixed inset-0 pointer-events-none z-[100] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%)] bg-[length:100%_4px] opacity-10" />
         </div>
     );
 }
@@ -140,66 +141,61 @@ function AdminButton({
     desc,
     onClick,
     icon,
-    count,
+    tag,
     highlight = false,
 }: {
     label: string;
     desc: string;
     icon: React.ReactNode;
-    count: string;
+    tag: string;
     onClick: () => void;
     highlight?: boolean;
 }) {
     return (
         <motion.button
-            whileHover={{ y: -5 }}
+            whileHover={{ y: -5, x: 2 }}
             whileTap={{ scale: 0.98 }}
             onClick={onClick}
-            className={`group relative p-8 rounded-sm text-left transition-all border overflow-hidden
+            className={`group relative p-8 rounded-xl text-left transition-all border-2 overflow-hidden
                 ${highlight
-                    ? "bg-red-600/5 border-red-600/50 hover:bg-red-600"
-                    : "bg-[#050505] border-zinc-900 hover:border-red-600/50"
+                    ? "bg-zinc-900/50 border-red-600 shadow-[0_0_20px_rgba(220,38,38,0.1)]"
+                    : "bg-zinc-950 border-white/5 hover:border-red-600/50"
                 }`}
         >
-            {/* HOVER GLOW EFFECT */}
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-red-600/10 rounded-full blur-3xl group-hover:bg-white/20 transition-all" />
+            {/* DESIGN ORNAMENTS */}
+            <div className="absolute top-0 right-0 w-12 h-12 border-t-2 border-r-2 border-red-600/20 group-hover:border-red-600 transition-colors rounded-tr-xl" />
+            <div className="absolute bottom-4 right-4 text-zinc-900 group-hover:text-red-600/10 transition-colors">
+                {icon}
+            </div>
 
-            <div className={`mb-6 p-3 w-fit rounded-lg border transition-colors
+            <div className={`mb-6 p-4 w-fit rounded-2xl border-2 transition-all
                 ${highlight
-                    ? "bg-red-600 border-red-400 text-white"
+                    ? "bg-red-600 border-red-400 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]"
                     : "bg-zinc-900 border-zinc-800 text-red-600 group-hover:bg-red-600 group-hover:text-white group-hover:border-red-400"
                 }`}
             >
                 {icon}
             </div>
 
-            <div className="space-y-2 relative z-10">
-                <div className="flex items-center justify-between">
-                    <p className={`font-black uppercase tracking-tighter text-xl italic transition-colors
-                        ${highlight ? "text-white group-hover:text-black" : "text-white group-hover:text-red-500"}`}
-                    >
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-1">
+                    <p className="font-[1000] uppercase tracking-tighter text-2xl italic text-white">
                         {label}
                     </p>
-                    <ChevronRight size={18} className={`transition-transform group-hover:translate-x-1 ${highlight ? 'text-white group-hover:text-black' : 'text-zinc-700'}`} />
+                    <ChevronRight size={20} className="text-zinc-700 group-hover:text-red-600 transition-all group-hover:translate-x-1" />
                 </div>
-                <p className={`text-[10px] font-mono uppercase tracking-[0.2em] mb-4
-                    ${highlight ? "text-red-300 group-hover:text-black/70" : "text-zinc-600"}`}
-                >
-                    {count}
+
+                <p className="text-[10px] font-mono font-black uppercase tracking-[0.3em] text-red-600 mb-4 opacity-70">
+                    {tag}
                 </p>
-                <p className={`text-xs leading-relaxed transition-colors
-                    ${highlight ? "text-red-100 group-hover:text-black" : "text-zinc-500 group-hover:text-zinc-300"}`}
-                >
+
+                <p className="text-xs leading-relaxed text-zinc-500 group-hover:text-zinc-300 font-medium max-w-[90%]">
                     {desc}
                 </p>
             </div>
 
-            {/* DECORATIVE CORNER */}
-            <div className={`absolute bottom-0 right-0 w-8 h-8 transition-colors
-                ${highlight ? "bg-red-400/20" : "bg-zinc-900"} 
-                clip-path-triangle group-hover:bg-white/20`}
-                style={{ clipPath: 'polygon(100% 0, 100% 100%, 0 100%)' }}
-            />
+            {/* GLITCH STRIP */}
+            <div className="absolute bottom-0 left-0 h-1 w-0 bg-red-600 group-hover:w-full transition-all duration-500" />
         </motion.button>
     );
 }
