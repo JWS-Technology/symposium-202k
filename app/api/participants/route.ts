@@ -29,12 +29,10 @@ export async function POST(req: Request) {
     const { name, dno, email, eventName, eventType } = await req.json();
 
     /* ---------- VALIDATIONS ---------- */
-    // 1. Fetch Event configuration from DB
     const eventConfig = await Event.findOne({ eventName, eventType });
     if (!eventConfig)
       return NextResponse.json({ message: "Invalid event" }, { status: 400 });
 
-    // 2. TEAM CAPACITY RESTRICTION: Check if team has already reached maxPlayers for this event
     const participantsInEventCount = await Participant.countDocuments({
       teamId: user.teamId,
       "events.eventName": eventName,
@@ -43,19 +41,18 @@ export async function POST(req: Request) {
     if (participantsInEventCount >= eventConfig.maxPlayers) {
       return NextResponse.json(
         {
-          message: `Limit reached: Your team already has ${eventConfig.maxPlayers} participant(s) registered for ${eventName}.`,
+          message: `Limit reached: Your team already has ${eventConfig.maxPlayers} registered for ${eventName}.`,
         },
         { status: 400 },
       );
     }
 
-    // 3. Check if participant exists (By DNO or Email)
     let participant = await Participant.findOne({
       $or: [{ dno }, { email }],
     });
 
     if (participant) {
-      // Restriction: Max 2 events per individual
+      // 1. Max 2 events check
       if (participant.events.length >= 2) {
         return NextResponse.json(
           { message: "Participant already reached max (2) events" },
@@ -63,7 +60,7 @@ export async function POST(req: Request) {
         );
       }
 
-      // Restriction: Duplicate event check
+      // 2. Duplicate event check
       if (participant.events.some((ev: any) => ev.eventName === eventName)) {
         return NextResponse.json(
           { message: "Already registered for this event" },
@@ -71,20 +68,34 @@ export async function POST(req: Request) {
         );
       }
 
-      // Restriction: Cultural Firewall
-      const hasCulturals = participant.events.some(
-        (ev: any) => ev.eventType === "CULTURALS",
-      );
-      const isAddingCultural = eventType === "CULTURALS";
+      // 3. CROSS-SECTOR VALIDATION (The Logic Update)
+      const existingEvent = participant.events[0];
+      const existingType = existingEvent.eventType;
+      const newType = eventType;
 
-      if (hasCulturals !== isAddingCultural) {
+      // Cultural Firewall
+      if ((existingType === "CULTURALS") !== (newType === "CULTURALS")) {
         return NextResponse.json(
           {
             message:
-              "Restriction: Cultural participants cannot register for Technical/Non-Technical events.",
+              "Restriction: Culturals cannot mix with Technical/Non-Technical events.",
           },
           { status: 400 },
         );
+      }
+
+      // Tech vs Non-Tech Toggle
+      if (existingType !== "CULTURALS") {
+        if (existingType === newType) {
+          const requiredType =
+            existingType === "TECHNICAL" ? "NON-TECHNICAL" : "TECHNICAL";
+          return NextResponse.json(
+            {
+              message: `Restriction: Already registered for a ${existingType} event. Second event must be ${requiredType}.`,
+            },
+            { status: 400 },
+          );
+        }
       }
 
       /* ✅ ADD TO EXISTING */
@@ -145,7 +156,6 @@ export async function PUT(req: Request) {
         { status: 400 },
       );
 
-    // 1. Fetch Event configuration and check Team MaxPlayers
     const eventConfig = await Event.findOne({ eventName, eventType });
     if (!eventConfig)
       return NextResponse.json({ message: "Invalid event" }, { status: 400 });
@@ -164,30 +174,44 @@ export async function PUT(req: Request) {
       );
     }
 
-    // 2. Fetch Participant to check restrictions
     const participant = await Participant.findById(participantId);
     if (!participant)
       return NextResponse.json({ message: "Not found" }, { status: 404 });
 
-    // 3. Cultural Firewall check for the OTHER event in the array
+    // CROSS-SECTOR VALIDATION for the OTHER event in the array
     const otherEvent = participant.events.find(
       (ev: any) => ev.eventName !== oldEventName,
     );
-    if (otherEvent) {
-      const otherIsCultural = otherEvent.eventType === "CULTURALS";
-      const newIsCultural = eventType === "CULTURALS";
 
-      if (otherIsCultural !== newIsCultural) {
+    if (otherEvent) {
+      const otherType = otherEvent.eventType;
+      const newType = eventType;
+
+      // Cultural Firewall
+      if ((otherType === "CULTURALS") !== (newType === "CULTURALS")) {
         return NextResponse.json(
           {
-            message: "Restriction: Cannot mix Cultural and Technical sectors.",
+            message:
+              "Restriction: Cannot mix Cultural and Technical/Non-Technical sectors.",
+          },
+          { status: 400 },
+        );
+      }
+
+      // Tech vs Non-Tech Toggle
+      if (otherType !== "CULTURALS" && otherType === newType) {
+        const requiredType =
+          otherType === "TECHNICAL" ? "NON-TECHNICAL" : "TECHNICAL";
+        return NextResponse.json(
+          {
+            message: `Conflict: This participant is already in a ${otherType} event. They must swap to a ${requiredType} event.`,
           },
           { status: 400 },
         );
       }
     }
 
-    // 4. Update
+    /* ✅ UPDATE */
     const updated = await Participant.findOneAndUpdate(
       { _id: participantId, "events.eventName": oldEventName },
       {

@@ -57,11 +57,12 @@ interface EventItem {
 interface FormInputProps {
     label: string;
     value: string;
-    onChange: (val: string) => void; // Explicitly type the callback
+    onChange: (val: string) => void;
     theme: "dark" | "light";
     type?: string;
     disabled?: boolean;
 }
+
 export default function DashboardPage() {
     const router = useRouter();
 
@@ -143,14 +144,29 @@ export default function DashboardPage() {
 
     /* ================= DYNAMIC RESTRICTION LOGIC ================= */
     const allowedSectors = useMemo(() => {
-        if (!editingId) return ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"];
         const p = participants.find(part => part._id === editingId);
-        if (!p || p.events.length === 0) return ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"];
+
+        // If brand new participant, allow everything
+        if (!editingId || !p || p.events.length === 0) {
+            return ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"];
+        }
+
+        // Identify the "Anchor" event (the one they are NOT currently changing)
         const anchorEvent = isEditSwap
             ? p.events.find(ev => ev.eventName !== oldEventName)
             : p.events[0];
+
         if (!anchorEvent) return ["TECHNICAL", "NON-TECHNICAL", "CULTURALS"];
-        return anchorEvent.eventType === "CULTURALS" ? ["CULTURALS"] : ["TECHNICAL", "NON-TECHNICAL"];
+
+        // 1. Cultural Firewall
+        if (anchorEvent.eventType === "CULTURALS") {
+            return ["CULTURALS"];
+        }
+
+        // 2. Technical vs Non-Technical Toggle Logic
+        // If Slot 1 is Technical -> Slot 2 must be Non-Technical
+        // If Slot 1 is Non-Technical -> Slot 2 must be Technical
+        return anchorEvent.eventType === "TECHNICAL" ? ["NON-TECHNICAL"] : ["TECHNICAL"];
     }, [editingId, participants, isEditSwap, oldEventName]);
 
     const filteredEventOptions = useMemo(() => {
@@ -257,7 +273,6 @@ export default function DashboardPage() {
                 }}
             />
 
-            {/* THEME TOGGLE FLOATING BUTTON */}
             <button
                 onClick={toggleTheme}
                 className={`fixed top-6 right-6 z-[100] flex items-center gap-2 p-3 rounded-full border transition-all shadow-lg active:scale-95 ${theme === 'dark'
@@ -265,16 +280,12 @@ export default function DashboardPage() {
                     : 'bg-white border-zinc-200 text-indigo-600 hover:bg-zinc-50'
                     }`}
             >
-                {/* Icon is always visible */}
                 {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-
-                {/* Text is hidden on mobile, shown on md screens and up */}
                 <span className="hidden md:inline text-[10px] font-black uppercase tracking-widest">
                     {theme === 'dark' ? "Light Mode" : "Dark Mode"}
                 </span>
             </button>
             <div className="max-w-5xl mx-auto px-6 py-12 relative z-10">
-                {/* HEADER */}
                 <header className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
                     <div>
                         <div className="flex items-center gap-3 mb-2">
@@ -299,7 +310,6 @@ export default function DashboardPage() {
                     </div>
                 </header>
 
-                {/* TEAM INFO BOXES */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
                     <div className={`md:col-span-1 border p-6 rounded-2xl flex flex-col items-center justify-center ${theme === 'dark' ? 'bg-zinc-900/30 border-zinc-800' : 'bg-zinc-50 border-zinc-200'}`}>
                         <User className="text-red-600 mb-3" size={40} />
@@ -314,7 +324,6 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* ROSTER */}
                 <div className={`border rounded-2xl shadow-2xl overflow-hidden mb-20 ${theme === 'dark' ? 'bg-[#050505] border-zinc-900' : 'bg-white border-zinc-200'}`}>
                     <div className={`px-6 py-6 border-b flex justify-between items-center ${theme === 'dark' ? 'border-zinc-900' : 'border-zinc-100'}`}>
                         <h3 className={`font-black uppercase tracking-widest text-xs flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
@@ -383,7 +392,6 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* INSTRUCTIONS */}
                 <section className={`mt-20 mb-10 border-t pt-10 ${theme === 'dark' ? 'border-zinc-900' : 'border-zinc-100'}`}>
                     <div className="flex items-center gap-2 mb-6">
                         <HelpCircle size={16} className="text-red-600" />
@@ -396,7 +404,6 @@ export default function DashboardPage() {
                 </section>
             </div>
 
-            {/* FORM MODAL */}
             <AnimatePresence>
                 {showParticipantForm && (
                     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -463,7 +470,6 @@ export default function DashboardPage() {
                 )}
             </AnimatePresence>
 
-            {/* PAYMENT MODAL */}
             <AnimatePresence>
                 {showPaymentModal && payParticipant && (
                     <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
@@ -520,8 +526,7 @@ function FormInput({ label, value, onChange, theme, type = "text", disabled = fa
                 value={value}
                 onChange={e => onChange(e.target.value)}
                 disabled={disabled}
-                className={`w-full border p-3 rounded-xl outline-none focus:border-red-600 disabled:opacity-50 ${theme === 'dark' ? 'bg-zinc-900/50 border-zinc-800 text-white' : 'bg-zinc-50 border-zinc-200 text-zinc-900'
-                    }`}
+                className={`w-full border p-3 rounded-xl outline-none focus:border-red-600 disabled:opacity-50 ${theme === 'dark' ? 'bg-zinc-900/50 border-zinc-800 text-white' : 'bg-zinc-50 border-zinc-200 text-zinc-900'}`}
             />
         </div>
     );
