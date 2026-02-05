@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
-import { Trophy, Gift, Star, Zap, Sparkles } from "lucide-react";
+import { Trophy, Gift, Zap, Sparkles } from "lucide-react";
 import React from "react";
 
 export default function PrizePool() {
@@ -26,29 +26,21 @@ export default function PrizePool() {
                 }}
             />
 
-            {/* 2. THE BACKGROUND WEB ENGINE (Smooth Slow Rotation) */}
+            {/* 2. BACKGROUND EFFECTS */}
             <div className="absolute inset-0 z-0 flex items-center justify-center">
                 <motion.div
-                    animate={{
-                        rotate: 360,
-                        scale: [1, 1.1, 1]
-                    }}
+                    animate={{ rotate: 360, scale: [1, 1.1, 1] }}
                     transition={{
                         rotate: { duration: 60, repeat: Infinity, ease: "linear" },
                         scale: { duration: 8, repeat: Infinity, ease: "easeInOut" }
                     }}
                     className="w-[800px] h-[800px] opacity-20 border border-red-600/30 rounded-full blur-sm"
                 />
-                <motion.div
-                    animate={{ opacity: [0.05, 0.15, 0.05] }}
-                    transition={{ duration: 4, repeat: Infinity }}
-                    className="absolute w-[400px] h-[400px] bg-red-600/10 blur-[120px] rounded-full"
-                />
             </div>
 
             <div className="max-w-7xl mx-auto px-6 relative z-10 w-full">
 
-                {/* HEADER - Staggered Text Reveal */}
+                {/* HEADER */}
                 <div className="text-center mb-16">
                     <motion.h2
                         initial={{ opacity: 0, letterSpacing: "0.5em" }}
@@ -56,32 +48,23 @@ export default function PrizePool() {
                         transition={{ duration: 1 }}
                         className="text-zinc-500 text-xl md:text-3xl font-black uppercase mb-2"
                     >
-                        PRIZE
+                        PRIZE POOL
                     </motion.h2>
+                    <div className="h-1 w-24 bg-red-600 mx-auto rounded-full shadow-[0_0_10px_#dc2626]" />
                 </div>
 
-                {/* PRIZE CONTAINER */}
-                <div className="flex flex-col lg:flex-row items-center justify-center gap-8 lg:gap-4">
+                {/* PRIZE CONTAINER - Now optimized for 2 Prizes */}
+                <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-16">
 
-                    {/* 2nd PLACE CARD - Advanced Tilt */}
+                    {/* 1st PLACE MAIN CARD */}
                     <motion.div
-                        initial={{ opacity: 0, x: -100, rotateY: 30 }}
-                        whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.8, type: "spring" }}
-                        className="order-2 lg:order-1"
-                    >
-                        <HolographicCard rank="2nd" title="Exciting Prizes" icon={<Gift size={32} />} />
-                    </motion.div>
-
-                    {/* 1st PLACE MAIN CARD - Floating & Glow Pulse */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
-                        whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.6 }}
-                        className="order-1 lg:order-2 relative z-20 group"
+                        className="relative z-20 group"
                     >
+                        {/* Outer Glow */}
                         <motion.div
                             animate={{ opacity: [0.2, 0.4, 0.2] }}
                             transition={{ duration: 3, repeat: Infinity }}
@@ -90,22 +73,13 @@ export default function PrizePool() {
 
                         <div className="relative bg-[#080808]/90 border-[3px] border-white rounded-[2.5rem] p-8 md:p-12 w-full max-w-md md:w-[450px] text-center shadow-2xl overflow-hidden">
 
-                            {/* Inner Laser Scan Animation */}
                             <motion.div
                                 animate={{ top: ["-100%", "200%"] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
                                 className="absolute left-0 w-full h-1/2 bg-gradient-to-b from-transparent via-red-600/5 to-transparent skew-y-12 pointer-events-none"
                             />
 
-                            {/* Trophy & Web Overlay */}
                             <div className="relative mb-8 flex justify-center">
-                                <motion.div
-                                    animate={{ width: ["0%", "100%", "0%"], opacity: [0, 1, 0] }}
-                                    transition={{ duration: 3, repeat: Infinity }}
-                                    className="absolute inset-0 flex items-center justify-center"
-                                >
-                                    <div className="w-full h-[1px] bg-red-600 shadow-[0_0_15px_red]" />
-                                </motion.div>
                                 <motion.div
                                     animate={{ y: [0, -10, 0] }}
                                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
@@ -115,39 +89,43 @@ export default function PrizePool() {
                                 </motion.div>
                             </div>
 
+                            <h3 className="text-zinc-500 font-bold uppercase tracking-[0.3em] text-xs mb-2">Winner</h3>
                             <h1 className="text-5xl md:text-7xl font-[1000] italic text-white mb-6 tracking-tighter">
-                                ARAZON<span className="text-red-600">.</span>
+                                ARA<span className="text-red-600">ZON</span>
                             </h1>
 
                             <motion.div
                                 whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                className="bg-white text-black py-4 px-8 rounded-2xl inline-block w-full shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
+                                className="bg-white text-black py-5 px-8 rounded-2xl inline-block w-full shadow-[0_10px_30px_rgba(255,255,255,0.1)]"
                             >
-                                <span className="block text-4xl md:text-5xl font-black tracking-tighter leading-none">₹2,000</span>
-                                <span className="block text-[10px] font-bold uppercase tracking-[0.2em] mt-1 opacity-60">Cash Prize</span>
-                                <div className="mt-2 flex justify-center">
+                                <span className="block text-4xl md:text-6xl font-black tracking-tighter leading-none">₹2,000</span>
+                                <span className="block text-[10px] font-black uppercase tracking-[0.2em] mt-2 opacity-60">Cash Prize</span>
+                                <div className="mt-3 flex justify-center">
                                     <motion.div
                                         animate={{ scale: [1, 1.2, 1] }}
                                         transition={{ duration: 1.5, repeat: Infinity }}
-                                        className="bg-red-600 rounded-full p-1 shadow-lg shadow-red-600/50"
+                                        className="bg-red-600 rounded-full p-1"
                                     >
-                                        <Zap size={16} fill="white" className="text-white" />
+                                        <Zap size={18} fill="white" className="text-white" />
                                     </motion.div>
                                 </div>
                             </motion.div>
                         </div>
                     </motion.div>
 
-                    {/* 3rd PLACE CARD - Advanced Tilt */}
+                    {/* 2nd PLACE CARD */}
                     <motion.div
-                        initial={{ opacity: 0, x: 100, rotateY: -30 }}
-                        whileInView={{ opacity: 1, x: 0, rotateY: 0 }}
+                        initial={{ opacity: 0, x: 50 }}
+                        whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.8, type: "spring" }}
-                        className="order-3 lg:order-3"
                     >
-                        <HolographicCard rank="3rd" title="Exciting Prizes" icon={<Star size={32} />} />
+                        <HolographicCard
+                            rank="2nd"
+                            amount="₹1,000"
+                            title="Runner Up"
+                            icon={<Gift size={40} />}
+                        />
                     </motion.div>
 
                 </div>
@@ -156,8 +134,7 @@ export default function PrizePool() {
     );
 }
 
-function HolographicCard({ rank, title, icon }: { rank: string, title: string, icon: any }) {
-    // Advanced Mouse Parallax Spring Physics
+function HolographicCard({ rank, amount, title, icon }: { rank: string, amount: string, title: string, icon: any }) {
     const x = useMotionValue(0);
     const y = useMotionValue(0);
     const mouseXSpring = useSpring(x);
@@ -167,56 +144,54 @@ function HolographicCard({ rank, title, icon }: { rank: string, title: string, i
 
     const handleMouseMove = (e: React.MouseEvent) => {
         const rect = e.currentTarget.getBoundingClientRect();
-        const width = rect.width;
-        const height = rect.height;
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        x.set(mouseX - width / 2);
-        y.set(mouseY - height / 2);
-    };
-
-    const handleMouseLeave = () => {
-        x.set(0);
-        y.set(0);
+        x.set(e.clientX - rect.left - rect.width / 2);
+        y.set(e.clientY - rect.top - rect.height / 2);
     };
 
     return (
         <motion.div
             onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
+            onMouseLeave={() => { x.set(0); y.set(0); }}
             style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-            className="relative group cursor-pointer w-[280px] h-[180px] md:h-[220px]"
+            className="relative group cursor-pointer w-[300px] h-[320px]"
         >
-            {/* Holographic Border Glow */}
-            <div className="absolute inset-0 border border-white opacity-20 rounded-3xl group-hover:opacity-100 group-hover:border-red-600 transition-all duration-500" />
+            <div className="absolute inset-0 border border-white/20 rounded-[2rem] group-hover:border-red-600/50 transition-colors duration-500" />
 
-            <div className="absolute inset-0 bg-white/5 backdrop-blur-sm border border-white/40 rounded-3xl p-6 flex flex-col items-center justify-center text-center overflow-hidden">
+            <div className="absolute inset-0 bg-white/5 backdrop-blur-md border border-white/10 rounded-[2rem] p-8 flex flex-col items-center justify-center text-center overflow-hidden">
 
-                {/* Advanced Light Streak */}
+                {/* Holographic Sweep */}
                 <motion.div
                     animate={{ x: ["-100%", "200%"] }}
                     transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 pointer-events-none"
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent skew-x-12 pointer-events-none"
                 />
 
-                <div className="absolute top-2 right-2 opacity-40 group-hover:opacity-100 group-hover:text-red-500 transition-colors">
-                    <Sparkles size={16} className="animate-pulse" />
+                <div className="absolute top-6 right-6 opacity-30 group-hover:opacity-100 group-hover:text-red-500 transition-all">
+                    <Sparkles size={20} className="animate-pulse" />
                 </div>
 
-                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mb-4 group-hover:text-red-500 transition-colors">
+                <span className="text-[10px] font-black text-zinc-500 uppercase tracking-[0.3em] mb-6">
                     {rank} PLACE
                 </span>
 
                 <motion.div
-                    whileHover={{ scale: 1.2, rotate: 5 }}
-                    className="text-white mb-4"
+                    whileHover={{ scale: 1.1, rotate: -5 }}
+                    className="text-white/80 group-hover:text-red-500 transition-colors mb-6"
                 >
                     {icon}
                 </motion.div>
 
-                <h4 className="text-white text-xl font-black uppercase tracking-tight leading-none group-hover:scale-105 transition-transform">
-                    {title.split(' ')[0]} <br /> {title.split(' ')[1]}
-                </h4>
+                <div className="space-y-1">
+                    <h4 className="text-white text-2xl font-black uppercase italic tracking-tight">
+                        {title}
+                    </h4>
+                    <span className="block text-4xl font-black text-cyan-400 tracking-tighter">
+                        {amount}
+                    </span>
+                    <span className="block text-[8px] font-bold text-zinc-500 uppercase tracking-widest pt-2">
+                        Cash Award
+                    </span>
+                </div>
             </div>
         </motion.div>
     );
