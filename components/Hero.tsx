@@ -170,16 +170,7 @@ export default function Hero({ timeLeft }: HeroProps) {
                   </div>
                 </div>
 
-                {/* Status Indicator */}
-                <div className="mt-6 flex items-center justify-center gap-2">
-                  <span className="relative flex h-3 w-3">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
-                  </span>
-                  <span className="text-white/60 text-[10px] font-bold uppercase tracking-[0.3em]">
-                    Signal Stable // Preparation in Progress
-                  </span>
-                </div>
+
               </motion.div>
 
             </motion.div>
@@ -188,7 +179,7 @@ export default function Hero({ timeLeft }: HeroProps) {
             <div className="w-full mt-8 overflow-hidden bg-white/5 backdrop-blur-sm border-y border-white/10 py-2">
               <motion.div
                 animate={{ x: ["0%", "-55%"] }}
-                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+                transition={{ duration: 11, repeat: Infinity, ease: "linear" }}
                 className="flex whitespace-nowrap"
               >
                 {[...Array(4)].map((_, i) => (
