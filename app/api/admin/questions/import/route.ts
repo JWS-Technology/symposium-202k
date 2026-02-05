@@ -1,79 +1,93 @@
+// app/api/questions/import/route.ts
 import { NextResponse } from "next/server";
 import { connect } from "@/dbconfig/db";
 import Question from "@/models/Question";
-
-// ⚠️ Replace this with your real admin auth middleware
-function requireAdmin(req: Request) {
-  return true;
-}
+import Event from "@/models/event.model";
+import mongoose from "mongoose";
 
 export async function POST(req: Request) {
   try {
-    if (!requireAdmin(req)) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
-
     await connect();
 
-    const questions = await req.json();
+    // 1. Get data from body
+    const { eventId, questions } = await req.json();
 
-    if (!Array.isArray(questions)) {
+    // 2. Validate Event ID
+    if (!eventId || !mongoose.Types.ObjectId.isValid(eventId)) {
       return NextResponse.json(
-        { message: "JSON must be an array of questions" },
+        { message: "INVALID_EVENT_ID: Provide a valid MongoID" },
         { status: 400 },
       );
     }
 
-    const prepared: any[] = [];
+    // 3. Verify Event exists in DB
+    const eventExists = await Event.findById(eventId);
+    if (!eventExists) {
+      return NextResponse.json(
+        { message: "TARGET_EVENT_NOT_FOUND" },
+        { status: 404 },
+      );
+    }
 
-    questions.forEach((q, index) => {
+    // 4. Validate Questions Array
+    if (!Array.isArray(questions)) {
+      return NextResponse.json(
+        { message: "INVALID_PAYLOAD: Questions must be an array" },
+        { status: 400 },
+      );
+    }
+
+    const prepared = questions.map((q, index) => {
+      // Basic Validation
       if (!q.question || !Array.isArray(q.options)) {
-        throw new Error(`Invalid question at index ${index}`);
+        throw new Error(`Data corruption at index ${index}`);
       }
 
-      if (q.options.length !== 4) {
-        throw new Error(`Question ${index + 1}: Must have exactly 4 options`);
-      }
-
+      // Logic for finding the correct answer marked with '*'
       const correctIndexes = q.options
         .map((opt: string, i: number) => (opt.startsWith("*") ? i : -1))
         .filter((i: number) => i !== -1);
 
       if (correctIndexes.length !== 1) {
         throw new Error(
-          `Question ${index + 1}: Exactly one option must start with *`,
+          `Unit ${index + 1}: Exactly one option must start with '*'`,
         );
       }
-
-      const correctIndex = correctIndexes[0];
 
       const cleanOptions = q.options.map((opt: string) =>
         opt.startsWith("*") ? opt.slice(1) : opt,
       );
 
-      prepared.push({
+      return {
+        // --- RELATIONSHIP DATA ---
+        eventId: eventExists._id, // Storing ID for DB references
+        eventName: eventExists.eventName, // Denormalized name for easy UI display
+
+        // --- QUESTION DATA ---
         type: q.type || "mcq",
         question: q.question,
         code: q.type === "code" ? q.code : undefined,
         language: q.type === "code" ? q.language : undefined,
         options: cleanOptions,
-        correctIndex,
+        correctIndex: correctIndexes[0],
         subject: q.subject,
         difficulty: q.difficulty,
         explanation: q.explanation,
-      });
+      };
     });
-
-    await Question.insertMany(prepared);
+    // console.log("PREPARED_DATA_SAMPLE:", prepared[0]);
+    // 5. Bulk Insert
+    const result = await Question.insertMany(prepared);
 
     return NextResponse.json({
-      message: "Questions imported successfully",
-      count: prepared.length,
+      message: "INJECTION_SUCCESSFUL",
+      count: result.length,
+      event: eventExists.eventName,
     });
   } catch (err: any) {
     return NextResponse.json(
-      { message: err.message || "Import failed" },
-      { status: 400 },
+      { message: err.message || "UPLINK_ERROR" },
+      { status: 500 },
     );
   }
 }

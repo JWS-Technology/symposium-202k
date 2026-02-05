@@ -75,6 +75,14 @@ export default function AdminDashboard() {
                         highlight
                         onClick={() => router.push("/admin/payments")}
                     />
+                    <AdminButton
+                        label="view questions all"
+                        desc="Authorize and verify incoming credit transfers."
+                        icon={<CreditCard size={24} />}
+                        tag="FIN_SYNC"
+                        highlight
+                        onClick={() => router.push("/admin/qustionsviewall")}
+                    />
 
                     <AdminButton
                         label="Qustions Uploading"

@@ -99,7 +99,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Spider Sense (Quiz)"
                         icon={<Terminal />}
-                        teamSize="2 Units"
+                        teamSize="2 Participants"
                         delay={0.2}
                         rules={[
                             "Multi-stage elimination protocols.",
@@ -111,7 +111,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Brand Verse (AdZap)"
                         icon={<Layout />}
-                        teamSize="5 Units"
+                        teamSize="5 Participants"
                         delay={0.3}
                         rules={[
                             "Flash-topic assignment on stage.",
@@ -123,7 +123,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="WebBid League (IPL)"
                         icon={<Trophy />}
-                        teamSize="2 Units"
+                        teamSize="2 Participants"
                         delay={0.4}
                         rules={[
                             "Strategic bidding with assigned points.",
@@ -140,7 +140,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Web of Ideas (Paper)"
                         icon={<FileText />}
-                        teamSize="Max 2 Units"
+                        teamSize="Max 2 Participants"
                         delay={0.5}
                         rules={[
                             "PPT format submission required.",
@@ -152,7 +152,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Web Craft (Design)"
                         icon={<Layout />}
-                        teamSize="Max 2 Units"
+                        teamSize="Max 2 Paricipants"
                         delay={0.6}
                         rules={[
                             "HTML/CSS/JS stack only.",
@@ -164,7 +164,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Bug Busters (Debug)"
                         icon={<Bug />}
-                        teamSize="Max 2 Units"
+                        teamSize="Max 2 Participants"
                         delay={0.7}
                         rules={[
                             "Multi-language code verification.",
@@ -181,7 +181,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Velocity (Dance)"
                         icon={<Users />}
-                        teamSize="1 - 6 Units"
+                        teamSize="1 - 6 Participants"
                         delay={0.8}
                         rules={[
                             "Solo or squad deployment allowed.",
@@ -193,7 +193,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Resonance (Singing)"
                         icon={<Mic2 />}
-                        teamSize="1 - 3 Units"
+                        teamSize="1 - 3 Participants"
                         delay={0.9}
                         rules={[
                             "Karaoke/Acoustical support allowed.",

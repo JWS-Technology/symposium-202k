@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaSpider } from "react-icons/fa6";
-import Link from "next/link";
+import { FaSpider, FaCalendarDay, FaClock } from "react-icons/fa6";
 
 interface HeroProps {
   timeLeft: { days: number; hours: number; minutes: number; seconds: number };
@@ -66,7 +65,6 @@ export default function Hero({ timeLeft }: HeroProps) {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.8 }}
               className="bg-zinc-950/70 border-y-[3px] md:border-y-4 border-red-600 p-6 md:p-10 lg:p-12 w-full max-w-4xl text-center backdrop-blur-lg relative"
-              // Optimized Clip Path for all sizes
               style={{ clipPath: 'polygon(0 40px, 40px 0, 100% 0, 100% calc(100% - 40px), calc(100% - 40px) 100%, 0 100%)' }}
             >
               {/* Institution Header */}
@@ -106,7 +104,7 @@ export default function Hero({ timeLeft }: HeroProps) {
 
               <div className="h-[1px] md:h-[2px] w-full bg-cyan-500 my-6 md:my-8 shadow-[0_0_15px_#06b6d4]" />
 
-              {/* Countdown Grid - Changed to flexible heights for mobile */}
+              {/* Countdown Grid */}
               <div className="grid grid-cols-4 gap-2 sm:gap-4 md:gap-6 mb-8 md:mb-12">
                 {[
                   { label: "DAYS", val: timeLeft.days, color: "bg-red-600 text-white" },
@@ -127,32 +125,69 @@ export default function Hero({ timeLeft }: HeroProps) {
                 ))}
               </div>
 
-              {/* CTA Buttons - Stacked on Mobile */}
-              <div className="flex flex-col sm:flex-row gap-4 md:gap-8 justify-center items-center px-4">
-                <Link href="/login" className="w-full sm:w-auto">
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    className="w-full sm:w-48 md:w-64 bg-red-600 text-white font-black py-3 md:py-5 uppercase italic skew-x-[-10deg] border-2 md:border-4 border-black shadow-[-4px_4px_0px_white] text-xs md:text-xl"
-                  >
-                    Login
-                  </motion.button>
-                </Link>
+              {/* EVENT START DETAILS (Replacing Buttons) */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 1 }}
+                className="relative group bg-white/[0.03] border border-white/10 rounded-xl p-4 md:p-8 overflow-hidden"
+              >
+                {/* Laser Scan Animation */}
+                <motion.div
+                  animate={{ top: ["-100%", "200%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                  className="absolute left-0 w-full h-1/2 bg-gradient-to-b from-transparent via-cyan-500/10 to-transparent skew-y-12 pointer-events-none"
+                />
 
-                <Link href="/register" className="w-full sm:w-auto">
-                  <motion.button
-                    whileTap={{ scale: 0.95 }}
-                    className="w-full sm:w-48 md:w-64 bg-cyan-500 text-black font-black py-3 md:py-5 uppercase italic skew-x-[-10deg] border-2 md:border-4 border-black shadow-[-4px_4px_0px_#ef4444] text-xs md:text-xl"
-                  >
-                    Register
-                  </motion.button>
-                </Link>
-              </div>
+                <div className="flex flex-col md:flex-row items-center justify-center gap-6 md:gap-12">
+                  {/* Date Block */}
+                  <div className="flex items-center gap-4">
+                    <div className="bg-red-600 p-3 rounded-lg rotate-3 shadow-[4px_4px_0px_white]">
+                      <FaCalendarDay className="text-white text-xl md:text-3xl" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-cyan-400 text-[10px] font-black tracking-widest uppercase">Commences On</p>
+                      <h4 className="text-2xl md:text-4xl font-black text-white italic tracking-tighter">
+                        09.02.2026
+                      </h4>
+                    </div>
+                  </div>
+
+                  {/* Vertical Divider (Desktop) */}
+                  <div className="hidden md:block h-12 w-[2px] bg-white/20 skew-x-[-15deg]" />
+
+                  {/* Day Block */}
+                  <div className="flex items-center gap-4">
+                    <div className="bg-cyan-500 p-3 rounded-lg -rotate-3 shadow-[4px_4px_0px_#dc2626]">
+                      <FaClock className="text-black text-xl md:text-3xl" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-red-600 text-[10px] font-black tracking-widest uppercase">The Grand Opener</p>
+                      <h4 className="text-2xl md:text-4xl font-black text-white italic tracking-tighter">
+                        MONDAY
+                      </h4>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Status Indicator */}
+                <div className="mt-6 flex items-center justify-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                  </span>
+                  <span className="text-white/60 text-[10px] font-bold uppercase tracking-[0.3em]">
+                    Signal Stable // Preparation in Progress
+                  </span>
+                </div>
+              </motion.div>
+
             </motion.div>
 
             {/* RUNNING MARQUEE */}
             <div className="w-full mt-8 overflow-hidden bg-white/5 backdrop-blur-sm border-y border-white/10 py-2">
               <motion.div
-                animate={{ x: ["0%", "-50%"] }}
+                animate={{ x: ["0%", "-55%"] }}
                 transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
                 className="flex whitespace-nowrap"
               >
@@ -160,8 +195,10 @@ export default function Hero({ timeLeft }: HeroProps) {
                   <span key={i} className="text-[10px] md:text-sm font-black italic uppercase text-white/80 tracking-[0.2em] flex items-center shrink-0">
                     <span className="mx-4">REGISTRATIONS OPEN UNTIL 06.02.2026</span>
                     <span className="text-red-600 mr-4">●</span>
-                    <span className="mx-4">GRAND CASH PRIZE ₹2,000</span>
+                    <span className="mx-4">GRAND CASH WINNER PRIZE ₹2,000</span>
                     <span className="text-cyan-400 mr-4">●</span>
+                    <span className="mx-4">GRAND CASH RUNNER PRIZE ₹1,000</span>
+                    <span className="text-red-600 mr-4">●</span>
                   </span>
                 ))}
               </motion.div>
