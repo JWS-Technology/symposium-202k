@@ -327,7 +327,7 @@ export default function DashboardPage() {
                 <div className={`border rounded-2xl shadow-2xl overflow-hidden mb-20 ${theme === 'dark' ? 'bg-[#050505] border-zinc-900' : 'bg-white border-zinc-200'}`}>
                     <div className={`px-6 py-6 border-b flex justify-between items-center ${theme === 'dark' ? 'border-zinc-900' : 'border-zinc-100'}`}>
                         <h3 className={`font-black uppercase tracking-widest text-xs flex items-center gap-2 ${theme === 'dark' ? 'text-white' : 'text-zinc-900'}`}>
-                            <Layers size={14} className="text-red-600" /> Crew Roster
+                            <Layers size={14} className="text-red-600" /> Participants View
                         </h3>
                         <div className="flex gap-4">
                             {["ALL", "TECHNICAL", "NON-TECHNICAL", "CULTURALS"].map((type) => (
