@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -31,6 +32,11 @@ interface Participant {
     paymentAmount: number;
     paymentVerifiedByAdmin: boolean;
     createdAt: string;
+    userDetails?: {
+        department: string;
+        college: string;
+        phone: string;
+    };
 }
 
 export default function AdminParticipantsPage() {
@@ -68,16 +74,23 @@ export default function AdminParticipantsPage() {
         fetchRegistry();
     }, [router]);
 
-    /* ================= FILTER LOGIC ================= */
+    /* ================= FILTER & SORT LOGIC ================= */
     const filteredParticipants = useMemo(() => {
-        return participants.filter(p =>
+        // 1. First, filter the list based on search term
+        const filtered = participants.filter(p =>
             p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.teamId.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.dno.toLowerCase().includes(searchTerm.toLowerCase()) ||
             p.events.some(e => e.eventName.toLowerCase().includes(searchTerm.toLowerCase()))
         );
-    }, [participants, searchTerm]);
 
+        // 2. Then, sort the filtered list by teamId
+        // localeCompare with numeric: true handles strings like "TEAM-1", "TEAM-10", "TEAM-2" 
+        // to correctly result in 1, 2, 10 order.
+        return filtered.sort((a, b) =>
+            a.teamId.localeCompare(b.teamId, undefined, { numeric: true, sensitivity: 'base' })
+        );
+    }, [participants, searchTerm]);
     const terminateParticipant = async (participantId: string) => {
         const token = localStorage.getItem("adminToken");
         try {
@@ -95,7 +108,6 @@ export default function AdminParticipantsPage() {
                 const errorText = await res.text();
                 throw new Error(`UPLINK_REJECTED: Status ${res.status} - ${errorText}`);
             }
-
             const data = await res.json();
             if (data.success) {
                 setParticipants(prev => prev.filter(p => p._id !== participantId));
@@ -113,9 +125,9 @@ export default function AdminParticipantsPage() {
         setIsExporting(true);
         const worksheetData = filteredParticipants.map((p, i) => ({
             "S.No": i + 1,
-            "Agent Name": p.name,
-            "Email": p.email,
             "Team ID": p.teamId,
+            "Participants": p.name,
+            "Email": p.email,
             "DNO/Access Code": p.dno,
             "Events": p.events.map(e => `${e.eventName} (${e.eventType})`).join(", "),
             "Status": p.paymentStatus,
@@ -283,6 +295,7 @@ export default function AdminParticipantsPage() {
                             <thead className="text-[10px] uppercase tracking-[0.3em] text-zinc-600 font-black bg-white/[0.01]">
                                 <tr>
                                     <th className="p-6 border-b border-white/5">Identity</th>
+                                    <th className="p-6 border-b border-white/5">Department</th>
                                     <th className="p-6 border-b border-white/5">Event_Configuration</th>
                                     <th className="p-6 border-b border-white/5">Origin_Unit</th>
                                     <th className="p-6 border-b border-white/5">Status</th>
@@ -304,6 +317,14 @@ export default function AdminParticipantsPage() {
                                             </div>
                                         </td>
                                         <td className="p-6">
+                                            <div className="text-[10px] font-mono text-zinc-300 uppercase">
+                                                {p.userDetails?.department || "N/A"}
+                                            </div>
+                                            <div className="text-[8px] text-zinc-600">
+                                                {p.userDetails?.college || "Unknown Inst."}
+                                            </div>
+                                        </td>
+                                        <td className="p-6">
                                             <div className="flex flex-wrap gap-2">
                                                 {p.events.map((ev, idx) => (
                                                     <div key={idx} className="bg-zinc-900/50 border border-zinc-800 px-2 py-0.5 rounded">
@@ -313,7 +334,7 @@ export default function AdminParticipantsPage() {
                                             </div>
                                         </td>
                                         <td className="p-6 font-mono text-[10px]">
-                                            <span className="text-zinc-500">TID:</span> <span className="text-red-600">{p.teamId}</span>
+                                            <span className="text-zinc-500 ">TID:</span> <span className="text-red-600">{p.teamId}</span>
                                         </td>
                                         <td className="p-6">
                                             <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-sm border text-[8px] font-black uppercase tracking-widest ${p.paymentStatus === "PAID" ? "border-green-500/20 text-green-500" : "border-amber-500/20 text-amber-500"}`}>

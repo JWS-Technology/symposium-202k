@@ -249,6 +249,10 @@ export async function GET(req: Request) {
 
     const participants = await Participant.find()
       .sort({ createdAt: -1 })
+      .populate({
+        path: "userDetails",
+        select: "department college phone", // Only fetch what you need
+      })
       .lean();
     return NextResponse.json({ count: participants.length, participants });
   } catch (error) {

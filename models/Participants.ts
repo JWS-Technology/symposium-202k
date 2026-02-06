@@ -58,4 +58,16 @@ const ParticipantSchema = new Schema(
   { timestamps: true },
 );
 
+// Add this before the export default in your Participant model file
+ParticipantSchema.virtual("userDetails", {
+  ref: "User",
+  localField: "teamId",
+  foreignField: "teamId",
+  justOne: true,
+});
+
+// Ensure virtuals are included in JSON/Object outputs
+ParticipantSchema.set("toObject", { virtuals: true });
+ParticipantSchema.set("toJSON", { virtuals: true });
+
 export default models.Participant || model("Participant", ParticipantSchema);
