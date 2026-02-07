@@ -45,7 +45,7 @@ export default function SelectEventPage() {
 
     const handleStartTest = (eventName: string) => {
         localStorage.setItem("active_event", eventName);
-        router.push(`/test/live`);
+        router.push(`/test-room`);
     };
 
     return (

@@ -184,14 +184,14 @@ export default function Hero({ timeLeft }: HeroProps) {
               >
                 {[...Array(4)].map((_, i) => (
                   <span key={i} className="text-[10px] md:text-sm font-black italic uppercase text-white/80 tracking-[0.2em] flex items-center shrink-0">
-                    <span className="mx-4">REGISTRATIONS CLOSE TODAY 3.30 PM</span>
+                    <span className="mx-4">REGISTRATIONS CLOSE 08.02.2026 AT 12.00 AM</span>
                     <span className="text-red-600 mr-4">●</span>
                     <span className="mx-4">GRAND CASH WINNER PRIZE ₹2,000</span>
                     <span className="text-cyan-400 mr-4">●</span>
                     <span className="mx-4">GRAND CASH RUNNER PRIZE ₹1,000</span>
                     <span className="text-red-600 mr-4">●</span>
-                    {/* <span className="mx-4">REGISTRATIONS OPEN UNTIL 06.02.2026</span>
-                    <span className="text-red-600 mr-4">●</span> */}
+                    <span className="mx-4">ON SITE REGISTRATION PER PARTICIPANT 200 RS</span>
+                    <span className="text-cyan-400 mr-4">●</span>
 
                   </span>
                 ))}

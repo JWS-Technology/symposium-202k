@@ -5,10 +5,14 @@ const TestAttemptSchema = new Schema(
     participantId: {
       type: Schema.Types.ObjectId,
       required: true,
-      unique: true,
     },
+    eventName: { type: String, required: true }, // Added field
     teamId: { type: String, required: true },
     participantEmail: { type: String, required: true },
+    // 🟢 NEW FIELDS: Storing participant profile details
+    participantName: { type: String },
+    college: { type: String },
+    department: { type: String },
 
     questions: [
       {
@@ -32,5 +36,6 @@ const TestAttemptSchema = new Schema(
   },
   { timestamps: true },
 );
+TestAttemptSchema.index({ participantId: 1, eventName: 1 }, { unique: true });
 
 export default models.TestAttempt || model("TestAttempt", TestAttemptSchema);
