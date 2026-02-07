@@ -111,7 +111,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Brand Verse (AdZap)"
                         icon={<Layout />}
-                        teamSize="5 Participants"
+                        teamSize="Max 5 Participants"
                         delay={0.3}
                         rules={[
                             "Flash-topic assignment on stage.",
@@ -150,7 +150,7 @@ export default function RulesPage() {
                     />
 
                     <RuleCard
-                        title="Web Craft (Design)"
+                        title="Web Verse (Web Design)"
                         icon={<Layout />}
                         teamSize="Max 2 Paricipants"
                         delay={0.6}
@@ -164,7 +164,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Bug Busters (Debug)"
                         icon={<Bug />}
-                        teamSize="Max 2 Participants"
+                        teamSize="Max 1 Participants"
                         delay={0.7}
                         rules={[
                             "Multi-language code verification.",
@@ -193,7 +193,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Resonance (Singing)"
                         icon={<Mic2 />}
-                        teamSize="1 - 3 Participants"
+                        teamSize="1 - 4 Participants"
                         delay={0.9}
                         rules={[
                             "Karaoke/Acoustical support allowed.",
