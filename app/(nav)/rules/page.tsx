@@ -193,7 +193,7 @@ export default function RulesPage() {
                     <RuleCard
                         title="Resonance (Singing)"
                         icon={<Mic2 />}
-                        teamSize="1 - 4 Participants"
+                        teamSize="1 - 3 Participants"
                         delay={0.9}
                         rules={[
                             "Karaoke/Acoustical support allowed.",
