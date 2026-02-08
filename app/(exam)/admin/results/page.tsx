@@ -3,8 +3,12 @@ import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     FaSpider, FaDownload, FaSearch, FaFilter,
-    FaDatabase, FaUserShield, FaGraduationCap
+    FaDatabase, FaUserShield, FaGraduationCap, FaFilePdf, FaFileExcel
 } from "react-icons/fa";
+// Import Export Engines
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import * as XLSX from "xlsx";
 
 export default function AdminResults() {
     const [results, setResults] = useState<any[]>([]);
@@ -32,79 +36,114 @@ export default function AdminResults() {
 
     const events = ["All", ...Array.from(new Set(results.map((r) => r.eventName)))];
 
-    // 🟢 CSV EXPORT LOGIC
-    const exportToCSV = () => {
-        const headers = ["Agent Name,Team ID,Event,College,Department,Score,Timestamp\n"];
-        const rows = filteredResults.map(r =>
-            `${r.participantName},${r.teamId},${r.eventName},"${r.college}",${r.department},${r.score},${new Date(r.submittedAt).toLocaleString()}`
-        ).join("\n");
+    /* =================================================
+       EXPORT LOGIC: EXCEL (.xlsx)
+       ================================================= */
+    const exportToExcel = () => {
+        const worksheet = XLSX.utils.json_to_sheet(filteredResults.map(r => ({
+            "Team Name": r.participantName,
+            "Team ID": r.teamId,
+            "Event": r.eventName,
+            "College": r.college,
+            "Department": r.department,
+            "Score": r.score,
+            "Timestamp": new Date(r.submittedAt).toLocaleString()
+        })));
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Results");
+        XLSX.writeFile(workbook, `ARAZON_2K26_${filterEvent}_Score.xlsx`);
+    };
 
-        const blob = new Blob([headers + rows], { type: "text/csv" });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.setAttribute("hidden", "");
-        a.setAttribute("href", url);
-        a.setAttribute("download", `ARAZON_2K26_${filterEvent}_Results.csv`);
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+    /* =================================================
+       EXPORT LOGIC: THEMED PDF
+       ================================================= */
+    const exportToPDF = () => {
+        const doc = new jsPDF();
+
+        // PDF Theme Styling
+        doc.setFillColor(5, 5, 5); // Black Background
+        doc.rect(0, 0, 210, 297, 'F');
+
+        // Header
+        doc.setTextColor(220, 38, 38); // Red
+        doc.setFontSize(22);
+        doc.setFont("helvetica", "bold");
+        doc.text("ARAZON 2K26 // MASTER INTEL", 14, 20);
+
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(10);
+        doc.text(`Event: ${filterEvent.toUpperCase()} | Participations: ${filteredResults.length}`, 14, 28);
+        doc.text(`GENERATED: ${new Date().toLocaleString()}`, 14, 33);
+
+        autoTable(doc, {
+            startY: 40,
+            head: [['Team Name', 'TEAM ID', 'EVENT', 'COLLEGE', 'SCORE']],
+            body: filteredResults.map(r => [
+                r.participantName.toUpperCase(),
+                r.teamId,
+                r.eventName,
+                r.college.substring(0, 30),
+                r.score
+            ]),
+            headStyles: { fillColor: [220, 38, 38], textColor: [255, 255, 255], fontStyle: 'bold' },
+            styles: { fillColor: [20, 20, 20], textColor: [200, 200, 200], fontSize: 8 },
+            alternateRowStyles: { fillColor: [10, 10, 10] },
+            margin: { top: 40 }
+        });
+
+        doc.save(`ARAZON_2K26_${filterEvent}_Score.pdf`);
     };
 
     if (loading) return (
-        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center font-mono text-red-600">
+        <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center font-mono text-red-600 text-center">
             <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
-                <FaSpider className="text-6xl shadow-[0_0_20px_red]" />
+                <FaSpider className="text-6xl" />
             </motion.div>
-            <p className="mt-4 tracking-[0.5em] animate-pulse font-black uppercase text-xs">Accessing_Central_Node...</p>
+            <p className="mt-4 tracking-[0.5em] animate-pulse uppercase text-xs">Accessing_Central_Node...</p>
         </div>
     );
 
     return (
         <div className="min-h-screen bg-[#050505] text-white font-sans p-4 md:p-8 relative overflow-hidden">
-            {/* Background Decorative Element */}
             <FaSpider className="fixed -bottom-20 -left-20 text-zinc-900/40 text-[25rem] pointer-events-none" />
 
             <div className="max-w-7xl mx-auto relative z-10">
-                <header className="mb-10 border-b-2 border-red-600 pb-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <header className="mb-10 border-b-2 border-red-600 pb-6 flex flex-col md:flex-row justify-between items-center gap-6">
                     <div className="flex items-center gap-4">
                         <div className="bg-red-600 p-4 rounded-2xl shadow-[0_0_20px_rgba(220,38,38,0.4)]">
                             <FaUserShield className="text-2xl text-white" />
                         </div>
                         <div>
                             <h1 className="text-3xl font-black uppercase italic tracking-tighter">ARAZON <span className="text-red-600">2K26</span></h1>
-                            <p className="text-zinc-500 font-mono text-[10px] tracking-widest uppercase">Master_Control // Result_Intelligence</p>
+                            <p className="text-zinc-500 font-mono text-[10px] tracking-widest uppercase italic">Neural_Scour // Participant_Leaderboard</p>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-[10px] text-zinc-500 uppercase font-bold">Total Logs Found</p>
-                            <p className="text-xl font-mono font-black text-red-600">{results.length}</p>
-                        </div>
-                        <button
-                            onClick={exportToCSV}
-                            className="bg-white text-black hover:bg-red-600 hover:text-white px-6 py-3 rounded-xl font-black uppercase text-xs tracking-widest transition-all flex items-center gap-3 shadow-lg"
-                        >
-                            <FaDownload /> Export CSV
+                    <div className="flex flex-wrap justify-center gap-3">
+                        <button onClick={exportToExcel} className="bg-emerald-600 hover:bg-emerald-500 text-white px-5 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center gap-2 shadow-lg">
+                            <FaFileExcel className="text-lg" /> Excel
+                        </button>
+                        <button onClick={exportToPDF} className="bg-red-600 hover:bg-red-500 text-white px-5 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center gap-2 shadow-lg">
+                            <FaFilePdf className="text-lg" /> PDF Intel
                         </button>
                     </div>
                 </header>
 
-                {/* Filters Section */}
+                {/* Filters */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
                     <div className="relative col-span-2">
                         <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
                         <input
                             type="text"
-                            placeholder="SEARCH AGENT OR TEAM_ID..."
-                            className="w-full bg-zinc-900/50 border-2 border-zinc-800 p-4 pl-12 rounded-2xl text-red-500 outline-none focus:border-red-600 transition-all font-mono text-sm"
+                            placeholder="SEARCH AGENT, COLLEGE OR TEAM_ID..."
+                            className="w-full bg-zinc-900/50 border-2 border-zinc-800 p-4 pl-12 rounded-2xl text-red-500 outline-none focus:border-red-600 transition-all font-mono text-sm shadow-inner"
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
                     <div className="relative">
                         <FaFilter className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600" />
                         <select
-                            className="w-full bg-zinc-900/50 border-2 border-zinc-800 p-4 pl-12 rounded-2xl text-white outline-none focus:border-red-600 appearance-none font-bold text-sm"
+                            className="w-full bg-zinc-900/50 border-2 border-zinc-800 p-4 pl-12 rounded-2xl text-white outline-none focus:border-red-600 appearance-none font-bold text-sm cursor-pointer"
                             onChange={(e) => setFilterEvent(e.target.value)}
                         >
                             {events.map(ev => <option key={ev} value={ev} className="bg-zinc-900">{ev}</option>)}
@@ -112,37 +151,37 @@ export default function AdminResults() {
                     </div>
                 </div>
 
-                {/* Main Table HUD */}
+                {/* Table HUD */}
                 <div className="bg-zinc-900/30 border-2 border-zinc-800 rounded-[2.5rem] overflow-hidden backdrop-blur-md shadow-2xl">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-zinc-950/50 text-zinc-500 text-[10px] uppercase tracking-[0.2em] font-black border-b border-zinc-800">
-                                    <th className="p-6">Node Agent</th>
-                                    <th className="p-6">Event Context</th>
-                                    <th className="p-6">Institution</th>
-                                    <th className="p-6 text-center">Neural Score</th>
+                                    <th className="p-6">Team Name</th>
+                                    <th className="p-6">Event </th>
+                                    <th className="p-6">Institution Info</th>
+                                    <th className="p-6 text-center">Score</th>
                                     <th className="p-6">Timestamp</th>
                                 </tr>
                             </thead>
-                            <tbody className="text-sm">
+                            <tbody className="text-sm font-medium">
                                 <AnimatePresence>
                                     {filteredResults.map((row, i) => (
                                         <motion.tr
                                             initial={{ opacity: 0, y: 10 }}
                                             animate={{ opacity: 1, y: 0 }}
-                                            transition={{ delay: i * 0.03 }}
+                                            transition={{ delay: i * 0.02 }}
                                             key={row._id || i}
                                             className="border-b border-zinc-900/50 hover:bg-red-600/5 transition-colors group"
                                         >
                                             <td className="p-6">
                                                 <div className="flex flex-col">
                                                     <span className="text-white font-black uppercase italic group-hover:text-red-500 transition-colors">{row.participantName}</span>
-                                                    <span className="text-[10px] font-mono text-zinc-600">{row.teamId}</span>
+                                                    <span className="text-[10px] font-mono text-zinc-600 tracking-widest">{row.teamId}</span>
                                                 </div>
                                             </td>
                                             <td className="p-6">
-                                                <span className="bg-blue-600/10 text-blue-500 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter border border-blue-600/20">
+                                                <span className="bg-blue-600/10 text-blue-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase border border-blue-600/20">
                                                     {row.eventName}
                                                 </span>
                                             </td>
@@ -151,7 +190,7 @@ export default function AdminResults() {
                                                     <FaGraduationCap className="text-zinc-700 mt-1" />
                                                     <div>
                                                         <div className="text-xs text-zinc-300 font-bold uppercase">{row.college}</div>
-                                                        <div className="text-[9px] text-zinc-600 font-mono">{row.department}</div>
+                                                        <div className="text-[9px] text-zinc-600 font-mono uppercase">{row.department}</div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -171,12 +210,6 @@ export default function AdminResults() {
                             </tbody>
                         </table>
                     </div>
-                    {filteredResults.length === 0 && (
-                        <div className="p-20 text-center">
-                            <FaDatabase className="mx-auto text-4xl text-zinc-800 mb-4" />
-                            <p className="text-zinc-600 font-mono text-xs uppercase tracking-widest">No data matching current search parameters.</p>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
