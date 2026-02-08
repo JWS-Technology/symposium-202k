@@ -2,41 +2,32 @@ import { NextResponse } from "next/server";
 import { connect } from "@/dbconfig/db";
 import Question from "@/models/Question";
 import TestAttempt from "@/models/TestAttempt";
-import User from "@/models/User"; // 🟢 Import the User model
+import User from "@/models/User";
 import { getPrelimsUser } from "@/lib/prelimsAuth";
 
 export async function POST(req: Request) {
-  // console.log("--- START API INITIATED ---");
-
   try {
-    // 1. Auth & User Extraction
     const user = getPrelimsUser(req as any);
-    if (!user || !user.participantId) {
+    if (!user || !user.participantId)
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
-    }
 
-    // 2. Parse Request Body
     const { eventName } = await req.json();
-    if (!eventName) {
+    if (!eventName)
       return NextResponse.json(
         { message: "Missing event context" },
         { status: 400 },
       );
-    }
 
-    // 3. Database Connection
     await connect();
 
-    // 4. Check for Existing Attempt (Resume Logic)
     const existing = await TestAttempt.findOne({
       participantId: user.participantId,
-      eventName: eventName,
+      eventName,
     });
 
     if (existing) {
-      if (existing.submitted) {
+      if (existing.submitted)
         return NextResponse.json({ status: "SUBMITTED" }, { status: 200 });
-      }
       return NextResponse.json({
         attemptId: existing._id,
         duration: existing.duration,
@@ -50,26 +41,20 @@ export async function POST(req: Request) {
       });
     }
 
-    // 5. 🟢 Fetch Full User Profile using teamId
-    // This allows us to get the college, dept, and name
     const userProfile = await User.findOne({ teamId: user.teamId });
-    if (!userProfile) {
+    if (!userProfile)
       return NextResponse.json(
         { message: "User profile not found" },
         { status: 404 },
       );
-    }
 
-    // 6. Fetch all questions for the event
-    const rawQuestions = await Question.find({ eventName: eventName });
-    if (!rawQuestions || rawQuestions.length === 0) {
+    const rawQuestions = await Question.find({ eventName });
+    if (!rawQuestions || rawQuestions.length === 0)
       return NextResponse.json(
         { message: "No questions found" },
         { status: 404 },
       );
-    }
 
-    // 7. Dynamic Logic: Shuffle Questions AND Options
     const shuffleArray = (array: any[]) =>
       array.sort(() => Math.random() - 0.5);
     const shuffledQuestionPool = shuffleArray([...rawQuestions]);
@@ -82,32 +67,27 @@ export async function POST(req: Request) {
       return {
         questionId: q._id,
         question: q.question,
-        code: q.code,
+        code: q.code, // This is a backup in case the DB has a separate code field
         options: shuffledOptions,
         correctIndex: shuffledOptions.indexOf(correctValue),
       };
     });
 
-    // 8. 🟢 Create New Attempt with Profile Details
+    // 🟢 DYNAMIC TIME: 60 seconds per question
+    const dynamicDuration = questions.length * 60;
+
     const attempt = await TestAttempt.create({
       participantId: user.participantId,
       teamId: user.teamId,
       participantEmail: userProfile.email,
-
-      // NEW: Storing profile data into the attempt
       participantName: userProfile.name,
       college: userProfile.college,
       department: userProfile.department,
-
-      eventName: eventName,
+      eventName,
       questions,
-      duration: 5 * 60, // 15 Minutes
+      duration: dynamicDuration,
       submitted: false,
     });
-
-    console.log(
-      `SUCCESS: Created attempt for ${userProfile.name} (${userProfile.college})`,
-    );
 
     return NextResponse.json({
       attemptId: attempt._id,
@@ -121,7 +101,6 @@ export async function POST(req: Request) {
       })),
     });
   } catch (error: any) {
-    console.error("CRITICAL API FAILURE:", error.stack);
     return NextResponse.json({ message: error.message }, { status: 500 });
   }
 }

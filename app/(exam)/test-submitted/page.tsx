@@ -102,7 +102,7 @@ export default function TestSubmittedPage() {
                         animate="visible"
                         className="text-3xl md:text-4xl font-black uppercase italic tracking-tighter mb-4"
                     >
-                        Mission <span className="text-red-600">Accomplished</span>
+                        Prelims <span className="text-red-600">Completed</span>
                     </motion.h1>
 
                     <motion.p
@@ -129,8 +129,8 @@ export default function TestSubmittedPage() {
                             <span className="font-black uppercase tracking-tighter italic">Result Announcement</span>
                         </div>
                         <p className="text-white text-lg font-bold uppercase leading-tight">
-                            Results will be shown at the <br />
-                            <span className="text-red-600">Inauguration Venue</span>
+                            Results will be announce at the <br />
+                            <span className="text-red-600">Inaugurated Venue</span>
                         </p>
 
                         {/* Subtle Spider Decor */}
@@ -150,7 +150,7 @@ export default function TestSubmittedPage() {
                             onClick={() => router.push("/")}
                             className="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl flex items-center justify-center gap-2 group"
                         >
-                            Return to HQ
+                            Return to Home
                             <motion.span animate={{ x: [0, 5, 0] }} transition={{ repeat: Infinity }}>→</motion.span>
                         </button>
 
