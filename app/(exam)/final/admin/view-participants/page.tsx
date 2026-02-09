@@ -24,7 +24,7 @@ export default function ViewParticipants() {
 
   const fetchParticipants = async () => {
     try {
-      const res = await fetch("/api/final/get-users"); // Adjust to your actual GET route
+      const res = await fetch("/api/final/get-participants"); // Adjust to your actual GET route
       if (res.ok) {
         const result = await res.json();
         setParticipants(result.data || []);
