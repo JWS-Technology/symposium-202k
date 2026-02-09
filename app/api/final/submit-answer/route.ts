@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connect } from "@/dbconfig/db";
-import FinalQuestion from "@/models/finalQuestions.model"; // Ensure filename matches your project
+import FinalQuestion from "@/models/finalQuestions.model";
 import FinalAnswer from "@/models/finalAnswer.model";
 
 export async function POST(req: NextRequest) {
@@ -9,7 +9,6 @@ export async function POST(req: NextRequest) {
     
     const body = await req.json();
     
-    // 1. Destructure all the data sent from the frontend
     const { 
       answers, 
       violations, 
@@ -27,36 +26,45 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const bulkAnswers = [];
+    // 1. Process answers into an array (Local Calculation)
+    const processedAnswers = [];
+    let totalScore = 0;
+    let eventId = null;
 
-    // 2. Process each answer
     for (const ans of answers) {
-      // Find the question to verify the correct index and marks
       const questionData = await FinalQuestion.findById(ans.questionId);
 
       if (questionData) {
-        const isCorrect = ans.selectedOption === questionData.correctIndex;
+        // Capture eventId from the first valid question found
+        if (!eventId) eventId = questionData.eventId;
 
-        // 3. Push to array using the REAL data from the request body
-        bulkAnswers.push({
-          participantId: participantId, // From frontend
-          name: name,                   // From frontend
-          email: email,                 // From frontend
-          teamId: teamId,               // From frontend
-          eventId: questionData.eventId,// Verified from DB (Safer)
+        const isCorrect = ans.selectedOption === questionData.correctIndex;
+        const marks = isCorrect ? questionData.marks : 0;
+
+        totalScore += marks;
+
+        // Push to the array that will be saved in the document
+        processedAnswers.push({
           questionId: ans.questionId,
           selectedOption: ans.selectedOption,
           isCorrect,
-          marksObtained: isCorrect ? questionData.marks : 0,
-          violationsAtSubmission: violations || 0
+          marksObtained: marks,
         });
       }
     }
 
-    // 4. Bulk write to database
-    if (bulkAnswers.length > 0) {
-      await FinalAnswer.insertMany(bulkAnswers);
-    }
+    // 2. Save ONE single document containing the array
+    // This matches your updated "FinalAnswer" model
+    await FinalAnswer.create({
+      participantId,
+      name,
+      email,
+      teamId,
+      eventId, 
+      answers: processedAnswers, // <--- The array of answers
+      totalScore,                // <--- Calculated total
+      violations: violations || 0
+    });
 
     return NextResponse.json({ message: "Mission Accomplished" }, { status: 200 });
 
@@ -66,6 +74,6 @@ export async function POST(req: NextRequest) {
     if (error.code === 11000) {
       return NextResponse.json({ message: "Duplicate Submission Detected" }, { status: 409 });
     }
-    return NextResponse.json({ message: "System Error" }, { status: 500 });
+    return NextResponse.json({ message: "System Error: " + error.message }, { status: 500 });
   }
 }
