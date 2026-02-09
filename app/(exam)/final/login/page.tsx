@@ -13,7 +13,7 @@ export default function SpiderVerseLogin() {
     e.preventDefault();
     setLoading(true);
 
-    // Normalize data: email to lowercase, teamId to uppercase
+    // Normalize data
     const submissionData = {
       email: formData.email.toLowerCase().trim(),
       teamId: formData.teamId.toUpperCase().trim(),
@@ -29,7 +29,7 @@ export default function SpiderVerseLogin() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success("Identity Verified. Welcome to the Society.", {
+        toast.success("Identity Verified. Accessing Test Protocol...", {
           style: {
             border: '1px solid #059669',
             padding: '16px',
@@ -42,8 +42,20 @@ export default function SpiderVerseLogin() {
           iconTheme: { primary: '#059669', secondary: '#fff' },
         });
 
-        localStorage.setItem("user", JSON.stringify(data.user));
-        setTimeout(() => router.push("/dashboard"), 1500);
+        // --- NEW: USE COOKIES INSTEAD OF LOCALSTORAGE ---
+        
+        // 1. Serialize and Encode the data (Base64) to make it safe for cookies
+        // This also makes it look like an "Encrypted Token" in the browser
+        const payload = btoa(JSON.stringify(data.user));
+
+        // 2. Set the Cookie manually
+        // max-age=3600 -> Expries in 1 hour
+        // SameSite=Strict -> Protects against CSRF
+        // path=/ -> Available on all pages (like /final/test)
+        document.cookie = `spider_session=${payload}; path=/; max-age=3600; SameSite=Strict`;
+
+        // 3. Redirect
+        setTimeout(() => router.push("/final/test"), 1500);
       } else {
         toast.error(data.message || "Anomaly detected. Access denied.", {
           style: {
