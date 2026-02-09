@@ -2,49 +2,35 @@ import { Schema, model, models } from "mongoose";
 
 const FinalAnswerSchema = new Schema(
   {
-    // Link to the result record this answer belongs to
-    resultId: {
-      type: Schema.Types.ObjectId,
-      ref: "FinalResult",
-      required: true,
-      index: true,
-    },
-
-    // Link to the specific participant
+    // --- Session Identification ---
     participantId: {
       type: Schema.Types.ObjectId,
       ref: "FinalParticipant",
       required: true,
-      index: true,
     },
-
-    // Link to the specific question
-    questionId: {
+    name: { type: String, required: true },
+    email: { type: String, required: true, lowercase: true },
+    teamId: { type: String, required: true },
+    eventId: {
       type: Schema.Types.ObjectId,
-      ref: "FinalQuestion",
+      ref: "Event",
       required: true,
     },
 
-    // The index of the option the user selected (e.g., 0 for A, 1 for B)
-    // Use -1 or null to represent an unattempted question
-    selectedOption: {
-      type: Number,
-      required: true,
-      default: -1,
-    },
+    // --- NEW: The Array of Answers ---
+    // This fixes the "questionId is required" error by moving it inside an array
+    answers: [
+      {
+        questionId: { type: Schema.Types.ObjectId, ref: "FinalQuestion" },
+        selectedOption: { type: Number, required: true },
+        isCorrect: { type: Boolean, default: false },
+        marksObtained: { type: Number, default: 0 },
+      }
+    ],
 
-    // Boolean to quickly check correctness without re-calculating
-    isCorrect: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-
-    // Marks awarded for this specific answer
-    marksObtained: {
-      type: Number,
-      default: 0,
-    },
+    // --- Stats ---
+    totalScore: { type: Number, default: 0 },
+    violations: { type: Number, default: 0 },
   },
   {
     timestamps: true,
@@ -52,7 +38,10 @@ const FinalAnswerSchema = new Schema(
   }
 );
 
-// Prevent duplicate answers for the same question by the same participant in a single result
-FinalAnswerSchema.index({ resultId: 1, questionId: 1 }, { unique: true });
+// Constraint: One submission per participant per event
+FinalAnswerSchema.index({ participantId: 1, eventId: 1 }, { unique: true });
 
-export default models.FinalAnswer || model("FinalAnswer", FinalAnswerSchema);
+// Check if the model exists to prevent overwrite errors during hot-reloading
+const FinalAnswer = models.FinalAnswer || model("FinalAnswer", FinalAnswerSchema);
+
+export default FinalAnswer;
