@@ -151,7 +151,7 @@ export default function SpiderVerseLogin() {
                       // Forces visual uppercase for the Team ID
                       onChange={(e) => setFormData({ ...formData, teamId: e.target.value.toUpperCase() })}
                       className="w-full bg-[#0a0a0a] border-2 border-[#1a1a1a] text-white p-3 rounded-lg font-mono focus:outline-none focus:border-red-600 focus:shadow-[0_0_15px_rgba(225,29,72,0.2)] transition-all placeholder:text-gray-800 uppercase"
-                      placeholder="ATS-198"
+                      placeholder="AZ-105"
                     />
                     <div className="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-red-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     <div className="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-red-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
