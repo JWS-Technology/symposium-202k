@@ -29,12 +29,15 @@ const getCookie = (name: string) => {
   return null;
 };
 
-// --- HELPER: Safe ID Extraction (Fixes the "0" answer bug) ---
+// --- HELPER: Safe ID Extraction ---
 const getQId = (q: Question) => q._id || q.id || "unknown_id";
 
-/* =================================================
-   🕸️ CONTENT PARSER
-   ================================================= */
+// --- HELPER: Detect Code-Like Text ---
+// Checks if the text looks like code to switch font style
+const isCodeLike = (text: string) => {
+  return /[\{\}\[\]\(\);=]|\b(def|return|import|class|if|for|while|void|int|float)\b/.test(text);
+};
+
 const parseSpiderSenseContent = (rawString: string) => {
   if (!rawString) return { text: "", code: null };
   const codeRegex = /```(?:[a-zA-Z]*)?\s*([\s\S]*?)```/;
@@ -150,7 +153,7 @@ export default function SpiderTestRoom() {
   }, [timeLeft]);
 
   /* =================================================
-     🚀 SUBMISSION LOGIC (FIXED)
+     🚀 SUBMISSION LOGIC
      ================================================= */
   const submitTest = async () => {
     setLoading(true);
@@ -165,19 +168,16 @@ export default function SpiderTestRoom() {
     try {
       const user = JSON.parse(atob(sessionToken));
 
-      // FIX: Use the getQId helper to ensure we map the correct answer to the correct question ID
       const formattedAnswers = questions.map(q => {
         const qId = getQId(q);
-        // Default to -1 if the user hasn't answered this specific question ID
         const selected = answers[qId] !== undefined ? answers[qId] : -1;
-        
         return {
           questionId: qId,
           selectedOption: selected
         };
       });
 
-      console.log("Submitting Payload:", formattedAnswers); 
+      console.log("Submitting Payload:", formattedAnswers);
 
       const submissionPayload = {
         participantId: user._id || user.id,
@@ -212,9 +212,11 @@ export default function SpiderTestRoom() {
      RENDER
      ================================================= */
   const currentQ = questions[currentIndex];
-  // Safe parsing
   const parsed = currentQ ? parseSpiderSenseContent(currentQ.question) : { text: "", code: null };
   const currentQId = currentQ ? getQId(currentQ) : "loading";
+  
+  // Smart Font: Use monospace if it looks like code, otherwise standard sans
+  const isTechnicalQuestion = isCodeLike(parsed.text);
 
   if (loading || !currentQ) {
     return (
@@ -282,13 +284,12 @@ export default function SpiderTestRoom() {
                   PROTOCOL_{currentQ.subject || "GENERAL"} // Q_{currentIndex + 1}
                 </span>
                 
-                {/* FIX: 'whitespace-pre-wrap' ensures indented code in the question text is displayed correctly */}
-                <h2 className="text-2xl md:text-3xl font-black text-white leading-tight mt-4 whitespace-pre-wrap">
+                {/* DYNAMIC FONT: Switches to font-mono if code is detected in text */}
+                <h2 className={`text-xl md:text-3xl font-black text-white leading-relaxed mt-4 whitespace-pre-wrap ${isTechnicalQuestion ? 'font-mono text-cyan-400' : ''}`}>
                   {parsed.text}
                 </h2>
               </header>
 
-              {/* SEPARATE CODE BLOCK (If markdown detected) */}
               {parsed.code && (
                 <div className="mb-8 rounded-3xl overflow-hidden border-2 border-zinc-800 bg-black/80">
                   <div className="bg-red-600/10 px-6 py-2 border-b border-zinc-800 flex justify-between items-center text-[10px] font-mono text-red-500">
@@ -308,7 +309,6 @@ export default function SpiderTestRoom() {
                   <motion.button
                     key={i}
                     whileHover={{ x: 10 }}
-                    // FIX: Use currentQId helper to correctly set the answer for this specific question
                     onClick={() => setAnswers(prev => ({ ...prev, [currentQId]: i }))}
                     className={`group w-full p-6 rounded-2xl border-2 transition-all text-left flex items-center justify-between
                       ${answers[currentQId] === i ? 'border-red-600 bg-red-600/10 text-white' : 'border-zinc-800 bg-zinc-900/40 text-zinc-400 hover:border-zinc-700'}`}
@@ -318,7 +318,10 @@ export default function SpiderTestRoom() {
                         ${answers[currentQId] === i ? 'bg-red-600 border-red-400 text-white' : 'bg-black border-zinc-700 text-zinc-500'}`}>
                         {String.fromCharCode(65 + i)}
                       </span>
-                      <span className="text-lg md:text-xl font-bold">{opt}</span>
+                      {/* Options also get mono font if they look technical */}
+                      <span className={`text-lg md:text-xl font-bold ${isCodeLike(opt) ? 'font-mono' : ''}`}>
+                        {opt}
+                      </span>
                     </div>
                     {answers[currentQId] === i && <FaCheckCircle className="text-red-600 text-2xl shadow-[0_0_10px_red]" />}
                   </motion.button>
@@ -344,7 +347,6 @@ export default function SpiderTestRoom() {
             {questions.map((q, i) => (
               <div 
                 key={i} 
-                // FIX: Use getQId to check if answer exists
                 className={`h-1.5 rounded-full transition-all ${i === currentIndex ? 'bg-red-600 w-8' : answers[getQId(q)] !== undefined ? 'bg-red-900 w-3' : 'bg-zinc-800 w-3'}`} 
               />
             ))}
