@@ -39,7 +39,7 @@ export default function Navbar() {
 
   const mainLinks = [
     { name: "Contact", href: "/contact", jp: "連絡先" },
-    // { name: "Register", href: "/register", jp: "登録" },
+    { name: "Register", href: "/register", jp: "登録" },
   ];
 
   return (
