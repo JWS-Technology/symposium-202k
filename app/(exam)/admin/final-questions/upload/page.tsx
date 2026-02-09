@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 type Event = {
@@ -9,7 +9,8 @@ type Event = {
     eventType: string;
 };
 
-export default function UploadFinalQuestions() {
+// 1. Move all logic into this new inner component
+function UploadContent() {
     const router = useRouter();
     const params = useSearchParams();
     const eventIdFromQuery = params.get("eventId");
@@ -24,14 +25,18 @@ export default function UploadFinalQuestions() {
         fetch("/api/events")
             .then(res => res.json())
             .then(data => {
-                setEvents(data.events);
+                // Ensure we have an array to prevent crashes
+                const eventList = data.events || [];
+                setEvents(eventList);
+                
                 if (eventIdFromQuery) {
-                    const found = data.events.find(
+                    const found = eventList.find(
                         (e: Event) => e._id === eventIdFromQuery
                     );
                     setEvent(found || null);
                 }
-            });
+            })
+            .catch(err => setError("Failed to load events list"));
     }, [eventIdFromQuery]);
 
     const upload = async () => {
@@ -49,7 +54,8 @@ export default function UploadFinalQuestions() {
                 throw new Error("Payload must be an array");
             }
 
-            const payload = parsed.map(q => ({
+            // Map the parsed JSON to your schema structure
+            const payload = parsed.map((q: any) => ({
                 ...q,
                 eventId: event._id,
                 eventName: event.eventName,
@@ -67,6 +73,8 @@ export default function UploadFinalQuestions() {
             const data = await res.json();
             if (!res.ok) throw new Error(data.message);
 
+            // Redirect to view page on success
+            // Note: Ensure this route exists in your app
             router.push(`/admin/final-questions/view/${event._id}`);
         } catch (err: any) {
             setError(err.message);
@@ -79,8 +87,9 @@ export default function UploadFinalQuestions() {
         <div className="max-w-5xl mx-auto p-6 space-y-4">
             <h1 className="text-2xl font-bold">Upload Final Questions</h1>
 
+            {/* Event Selector */}
             <select
-                className="border p-2 w-full"
+                className="border p-2 w-full bg-black text-white rounded"
                 value={event?._id || ""}
                 onChange={e =>
                     setEvent(events.find(ev => ev._id === e.target.value) || null)
@@ -94,22 +103,32 @@ export default function UploadFinalQuestions() {
                 ))}
             </select>
 
+            {/* JSON Input Area */}
             <textarea
-                className="w-full h-96 border p-3 font-mono text-sm"
+                className="w-full h-96 border p-3 font-mono text-sm bg-gray-900 text-green-400 rounded"
                 value={raw}
                 onChange={e => setRaw(e.target.value)}
-                placeholder="Paste questions JSON (no event fields)"
+                placeholder='[ { "question": "...", "options": ["A", "B"], "correctIndex": 0, "marks": 2 } ]'
             />
 
-            {error && <p className="text-red-600">{error}</p>}
+            {error && <p className="text-red-500 font-bold border border-red-500 p-2 rounded">{error}</p>}
 
             <button
                 onClick={upload}
                 disabled={loading}
-                className="bg-black text-white px-6 py-2 rounded disabled:opacity-50"
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded disabled:opacity-50 font-bold uppercase tracking-widest transition-all"
             >
-                {loading ? "Uploading..." : "Upload"}
+                {loading ? "Uploading..." : "Upload Protocol"}
             </button>
         </div>
+    );
+}
+
+// 2. Export the component wrapped in Suspense
+export default function UploadFinalQuestions() {
+    return (
+        <Suspense fallback={<div className="p-10 text-center text-white">Loading Terminal...</div>}>
+            <UploadContent />
+        </Suspense>
     );
 }
