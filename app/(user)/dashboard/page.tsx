@@ -368,7 +368,7 @@ export default function DashboardPage() {
                                                                 <span className="text-[10px] text-red-500 font-black uppercase">{ev.eventName}</span>
                                                             </div>
                                                             {p.paymentStatus !== "PAID" && (
-                                                                <button onClick={() => openEditSwapMode(p, idx)} className="text-zinc-600 hover:text-red-500 transition-colors"><Edit3 size={11} /></button>
+                                                                <button onClick={() => openEditSwapMode(p, idx)} className="text-zinc-600 hover:text-red-500 transition-colors"><Edit3 size={10} /></button>
                                                             )}
                                                         </div>
                                                     ))}
