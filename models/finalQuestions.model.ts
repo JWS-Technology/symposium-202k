@@ -43,7 +43,8 @@ const FinalQuestionSchema = new Schema(
 
     correctIndex: {
       type: Number,
-      required: function () {
+      // Fix: Add (this: any) to tell TypeScript what 'this' is
+      required: function (this: any) {
         return this.type === "mcq";
       },
       min: 0,
